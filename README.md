@@ -34,6 +34,40 @@ Na primeira vez, os testes de ponta a ponta pedem o navegador:
 npx playwright install chromium
 ```
 
+## Como adicionar um projeto
+
+Cada projeto é um arquivo JSON em `content/projects/`. O nome do arquivo vira a URL: `content/projects/meu-projeto.json` aparece em `/projetos/meu-projeto/`.
+
+1. Coloque as imagens em `public/projects/meu-projeto/`. A capa é obrigatória.
+2. Crie `content/projects/meu-projeto.json`:
+
+```json
+{
+  "name": "Meu Projeto",
+  "tagline": "Uma frase curta, até 120 caracteres.",
+  "description": "Um parágrafo sobre o que o projeto faz e para quem.",
+  "highlights": ["De 1 a 6 destaques", "Cada um em uma frase"],
+  "stack": ["Next.js", "Postgres"],
+  "links": { "site": "https://meu-projeto.com", "repo": "https://github.com/voce/meu-projeto" },
+  "cover": "/projects/meu-projeto/cover.png",
+  "authors": [
+    {
+      "name": "Seu Nome",
+      "role": "Fullstack",
+      "contacts": [{ "kind": "github", "url": "https://github.com/voce" }]
+    }
+  ]
+}
+```
+
+3. Rode `npm run build`. Se faltar um campo ou uma imagem, o build para e diz qual arquivo e qual campo.
+
+Campos opcionais: `previewVideo` (`.mp4` ou `.webm` curto, usado no preview), `screenshots` (lista de imagens), `order` (número, menor aparece primeiro, padrão 100), e em cada autor `role`, `avatar` e `contacts`.
+
+Em `links`, informe `site`, `repo` ou os dois. Os tipos de contato aceitos são `github`, `linkedin`, `site`, `instagram` e `email`. Publique só contatos que a pessoa já deixa públicos ou que ela autorizou.
+
+O formato completo está em `src/content/schema.ts`.
+
 ## Stack
 
 - Next.js com App Router, exportado como site estático (`output: "export"`).

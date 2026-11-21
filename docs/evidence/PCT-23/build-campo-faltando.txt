@@ -1,0 +1,9 @@
+Error [ContentError]: sinal-verde.json: conteúdo inválido.
+  - campo "tagline": Invalid input: expected string, received undefined
+    at <unknown> (src/content/parse.ts:33:11)
+    at <unknown> (src/content/parse.ts:44:1)
+    at Array.map (<anonymous>)
+    at <unknown> (src/content/projects.ts:14:8)
+    at <unknown> (src/app/projetos/page.tsx:8:20)
+--
+exit code: 1

@@ -1,0 +1,32 @@
+{
+  "name": "Rota Segura",
+  "tagline": "Rotas a pé mais seguras, com dados abertos da cidade.",
+  "description": "Projeto fictício de exemplo. Um app que sugere o caminho a pé mais iluminado e movimentado entre dois pontos, usando dados abertos de iluminação pública e ocorrências.",
+  "highlights": [
+    "Mapa de calor de iluminação por quarteirão",
+    "Rota alternativa quando o trecho está sem luz",
+    "Funciona offline depois da primeira carga"
+  ],
+  "stack": ["React Native", "FastAPI", "PostGIS"],
+  "links": {
+    "site": "https://example.com/rota-segura",
+    "repo": "https://github.com/example/rota-segura"
+  },
+  "cover": "/projects/rota-segura/cover.svg",
+  "authors": [
+    {
+      "name": "Ana Exemplo",
+      "role": "Mobile",
+      "contacts": [
+        { "kind": "github", "url": "https://github.com/example" },
+        { "kind": "linkedin", "url": "https://www.linkedin.com/in/example" }
+      ]
+    },
+    {
+      "name": "Bruno Modelo",
+      "role": "Backend",
+      "contacts": [{ "kind": "github", "url": "https://github.com/example" }]
+    }
+  ],
+  "order": 1
+}
