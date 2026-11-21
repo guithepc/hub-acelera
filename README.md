@@ -34,6 +34,35 @@ Na primeira vez, os testes de ponta a ponta pedem o navegador:
 npx playwright install chromium
 ```
 
+## Deploy
+
+O site vira uma imagem Docker com nginx, publicada atrás do Traefik.
+
+No servidor, dentro da pasta do repo:
+
+```bash
+git pull
+HUB_DOMAIN=hub.exemplo.com docker compose up -d --build
+```
+
+| Variável               | Para que serve                               | Padrão        |
+| ---------------------- | -------------------------------------------- | ------------- |
+| `HUB_DOMAIN`           | Domínio público do site. Obrigatória.        | sem padrão    |
+| `TRAEFIK_NETWORK`      | Rede Docker externa em que o Traefik escuta. | `traefik`     |
+| `TRAEFIK_ENTRYPOINT`   | Entrypoint HTTPS do Traefik.                 | `websecure`   |
+| `TRAEFIK_CERTRESOLVER` | Resolvedor de certificado do Traefik.        | `letsencrypt` |
+
+Antes do primeiro deploy, confira os três nomes do Traefik no servidor (`docker network ls` e a configuração do Traefik) e aponte o DNS do domínio para o servidor.
+
+Para testar a imagem na sua máquina, sem Traefik:
+
+```bash
+docker build --build-arg SITE_URL=http://localhost:3300 -t hub-acelera:local .
+docker run --rm -p 3300:80 hub-acelera:local
+```
+
+O build falha se `SITE_URL` não for informada, porque ela entra nos links de compartilhamento.
+
 ## Medir performance
 
 Com o build servido em `npm run preview`:
