@@ -46,8 +46,8 @@ export function ProjectList({ projects }: { projects: ListProject[] }) {
   return (
     <div
       onPointerMove={follow}
-      onPointerLeave={() => {
-        setActive(none);
+      onPointerLeave={(event) => {
+        if (event.pointerType === "mouse") setActive(none);
       }}
     >
       <ol className="border-line border-t">
