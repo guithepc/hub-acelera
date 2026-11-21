@@ -1,0 +1,21 @@
+{
+  "name": "The One Digital",
+  "tagline": "Sites, sistemas e automações para negócios locais.",
+  "description": "O site do estúdio The One Digital, que desenha e desenvolve sites, sistemas e automações para negócios locais. Ele reúne os trabalhos entregues, os serviços e o processo, do diagnóstico ao sistema rodando.",
+  "highlights": [
+    "Portfólio com os trabalhos entregues, de restaurantes a produtos digitais",
+    "Disponível em português, inglês, holandês e francês",
+    "Serviços: sites e landing pages, sistemas sob medida, automações e integrações"
+  ],
+  "stack": ["Vercel"],
+  "links": { "site": "https://theonedigital.vercel.app" },
+  "cover": "/projects/the-one-digital/cover.jpg",
+  "screenshots": ["/projects/the-one-digital/trabalhos.jpg"],
+  "authors": [
+    {
+      "name": "Guilherme Pessoa",
+      "contacts": [{ "kind": "site", "url": "https://theonedigital.vercel.app" }]
+    }
+  ],
+  "order": 5
+}

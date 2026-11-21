@@ -1,0 +1,20 @@
+{
+  "name": "Money Flow",
+  "tagline": "Registre um gasto por áudio e veja tudo em um painel.",
+  "description": "Um controle de finanças pessoais em que você manda um áudio para um bot de Telegram e o gasto é registrado na hora. O painel web mostra as contas, as transações e o total do mês.",
+  "highlights": [
+    "Registro de gastos por áudio, em um bot de Telegram",
+    "Painel web com contas e transações",
+    "Total gasto no mês, com a evolução em gráfico"
+  ],
+  "stack": ["Vite", "Bot de Telegram"],
+  "links": { "site": "https://moneyflow.pctheone.com/" },
+  "cover": "/projects/money-flow/cover.jpg",
+  "authors": [
+    {
+      "name": "Guilherme Pessoa",
+      "contacts": [{ "kind": "site", "url": "https://theonedigital.vercel.app" }]
+    }
+  ],
+  "order": 4
+}

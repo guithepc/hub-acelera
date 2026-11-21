@@ -1,0 +1,21 @@
+{
+  "name": "Acelera Globe",
+  "tagline": "Um globo interativo com os devs da Acelera Dev espalhados pelo mundo.",
+  "description": "Um globo 3D que mostra onde estão os alunos da Acelera Dev e os resultados que cada um conquistou. Cada pessoa aparece no mapa com o seu avatar, e dá para filtrar por área de atuação.",
+  "highlights": [
+    "Globo 3D navegável, com zoom e rotação",
+    "Um avatar por dev, no lugar onde a pessoa está",
+    "Filtro por área: front-end, back-end, mobile, dados, DevOps, QA, IA e outras",
+    "Contador de devs e de estados alcançados"
+  ],
+  "stack": ["Vite", "Mapbox"],
+  "links": { "site": "https://resultados.aceleradev.com.br" },
+  "cover": "/projects/resultados-acelera-dev/cover.jpg",
+  "authors": [
+    {
+      "name": "Guilherme Pessoa",
+      "contacts": [{ "kind": "site", "url": "https://theonedigital.vercel.app" }]
+    }
+  ],
+  "order": 2
+}
