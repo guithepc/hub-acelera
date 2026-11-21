@@ -43,3 +43,6 @@ next-env.d.ts
 # testes
 /playwright-report
 /test-results
+
+# medições brutas do Lighthouse
+/docs/evidence/**/lighthouse/*-[0-9].json

@@ -19,6 +19,8 @@ const previewWidth = 440;
 export function ProjectList({ projects }: { projects: ListProject[] }) {
   const [active, setActive] = useState<Active>(none);
   const [lastPointer, setLastPointer] = useState<string>("mouse");
+  const [floatingLoaded, setFloatingLoaded] = useState(false);
+  const [inlineLoaded, setInlineLoaded] = useState<ReadonlySet<string>>(new Set());
   const reduceMotion = useReducedMotion();
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -28,6 +30,7 @@ export function ProjectList({ projects }: { projects: ListProject[] }) {
 
   function follow(event: PointerEvent) {
     if (event.pointerType !== "mouse") return;
+    setFloatingLoaded(true);
     const left = Math.min(event.clientX + 28, window.innerWidth - previewWidth - 16);
     x.set(Math.max(16, left));
     y.set(event.clientY - 140);
@@ -42,6 +45,11 @@ export function ProjectList({ projects }: { projects: ListProject[] }) {
       }
       return { kind: "floating", slug };
     });
+  }
+
+  function openInline(slug: string) {
+    setInlineLoaded((loaded) => (loaded.has(slug) ? loaded : new Set(loaded).add(slug)));
+    setActive({ kind: "inline", slug });
   }
 
   return (
@@ -59,6 +67,7 @@ export function ProjectList({ projects }: { projects: ListProject[] }) {
             <li key={project.slug} className="border-line border-b" data-testid="project">
               <Link
                 href={`/projetos/${project.slug}/`}
+                prefetch={false}
                 data-slug={project.slug}
                 data-active={isActive}
                 className="group grid touch-manipulation grid-cols-[2.5rem_1fr] items-baseline gap-x-3 px-5 py-7 outline-offset-[-2px] sm:grid-cols-[4rem_1fr_auto] sm:px-9 sm:py-9"
@@ -66,13 +75,12 @@ export function ProjectList({ projects }: { projects: ListProject[] }) {
                   setLastPointer(event.pointerType);
                 }}
                 onFocus={(event) => {
-                  if (event.currentTarget.matches(":focus-visible"))
-                    setActive({ kind: "inline", slug: project.slug });
+                  if (event.currentTarget.matches(":focus-visible")) openInline(project.slug);
                 }}
                 onClick={(event) => {
                   if (lastPointer === "mouse" || isInline) return;
                   event.preventDefault();
-                  setActive({ kind: "inline", slug: project.slug });
+                  openInline(project.slug);
                 }}
               >
                 <span className="label text-dim">{String(index + 1).padStart(2, "0")}</span>
@@ -96,6 +104,7 @@ export function ProjectList({ projects }: { projects: ListProject[] }) {
                   <span className="overflow-hidden">
                     <Preview
                       project={project}
+                      load={inlineLoaded.has(project.slug)}
                       playing={isInline}
                       className="mt-6 w-full max-w-xl"
                     />
@@ -128,6 +137,7 @@ export function ProjectList({ projects }: { projects: ListProject[] }) {
               <Preview
                 key={project.slug}
                 project={project}
+                load={floatingLoaded}
                 playing={shown}
                 data-shown={shown}
                 className="col-start-1 row-start-1 shadow-2xl shadow-black/60 transition-opacity duration-150 data-[shown=false]:opacity-0"
@@ -142,16 +152,19 @@ export function ProjectList({ projects }: { projects: ListProject[] }) {
 
 function Preview({
   project,
+  load,
   playing,
   className = "",
   ...rest
 }: {
   project: ListProject;
+  load: boolean;
   playing: boolean;
   className?: string;
   "data-shown"?: boolean;
 }) {
-  const frame = `border-line bg-deep aspect-[16/10] rounded-lg border object-cover ${className}`;
+  const frame = `border-line bg-deep aspect-[16/10] h-auto rounded-lg border object-cover ${className}`;
+  if (!load) return <span {...rest} className={`block ${frame}`} data-cover={project.slug} />;
   if (project.previewVideo && playing) {
     return (
       <video
@@ -159,6 +172,7 @@ function Preview({
         className={frame}
         src={project.previewVideo}
         poster={project.cover}
+        data-cover={project.slug}
         autoPlay
         muted
         loop
@@ -166,6 +180,17 @@ function Preview({
       />
     );
   }
-  // eslint-disable-next-line @next/next/no-img-element -- static export, covers are plain files
-  return <img {...rest} className={frame} src={project.cover} alt="" data-cover={project.slug} />;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element -- static export, covers are plain files
+    <img
+      {...rest}
+      className={frame}
+      src={project.cover}
+      alt=""
+      width={1600}
+      height={1000}
+      decoding="async"
+      data-cover={project.slug}
+    />
+  );
 }
