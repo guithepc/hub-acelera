@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ContentError, parseProject, sortProjects } from "./parse";
+import { ContentError, parseProject, projectFileNames, sortProjects } from "./parse";
 
 const valid = {
   name: "Rota Segura",
@@ -59,6 +59,56 @@ describe("parseProject", () => {
   it("recusa JSON quebrado dizendo o arquivo", () => {
     expect(() => parseProject("a.json", "{", allMediaExists)).toThrow(/a\.json: JSON inválido/);
   });
+});
+
+describe("endereços", () => {
+  const withContact = (kind: string, url: string) => ({
+    ...valid,
+    authors: [{ name: "Ana", contacts: [{ kind, url }] }],
+  });
+
+  it.each(["javascript:alert(1)", "data:text/html,<b>x</b>", "file:///etc/passwd", "ftp://x.com"])(
+    "recusa %s como link do projeto",
+    (url) => {
+      expect(() => parse("a.json", { ...valid, links: { site: url } })).toThrow(
+        /campo "links\.site": use um endereço http ou https/,
+      );
+    },
+  );
+
+  it("recusa javascript: em contato", () => {
+    expect(() => parse("a.json", withContact("github", "javascript:alert(1)"))).toThrow(
+      /campo "authors\.0\.contacts\.0\.url"/,
+    );
+  });
+
+  it("contato de e-mail só aceita mailto:", () => {
+    expect(() => parse("a.json", withContact("email", "https://example.com"))).toThrow(/mailto/);
+    expect(
+      parse("a.json", withContact("email", "mailto:ana@example.com")).authors[0]?.contacts,
+    ).toEqual([{ kind: "email", url: "mailto:ana@example.com" }]);
+  });
+
+  it("os outros contatos não aceitam mailto:", () => {
+    expect(() => parse("a.json", withContact("site", "mailto:ana@example.com"))).toThrow(
+      ContentError,
+    );
+  });
+});
+
+describe("projectFileNames", () => {
+  it("devolve só os .json e ignora arquivos ocultos", () => {
+    expect(projectFileNames(["b.json", ".DS_Store", "a.json"])).toEqual(["b.json", "a.json"]);
+  });
+
+  it.each(["copia.JSON", "rascunho.json.txt", "notas.md"])(
+    "falha com %s em vez de ignorar em silêncio",
+    (stray) => {
+      expect(() => projectFileNames(["a.json", stray])).toThrow(
+        new RegExp(stray.replace(".", "\\.")),
+      );
+    },
+  );
 });
 
 describe("sortProjects", () => {

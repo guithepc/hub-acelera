@@ -4,8 +4,9 @@ export function AboutSection() {
   return (
     <section
       id="sobre"
+      tabIndex={-1}
       aria-labelledby="sobre-titulo"
-      className="border-line scroll-mt-8 border-t px-5 py-24 sm:px-9"
+      className="border-line scroll-mt-8 border-t px-5 py-24 outline-none sm:px-9"
     >
       <p className="label text-mint">Sobre</p>
       <div className="mt-4 grid gap-10 lg:grid-cols-2 lg:gap-20">

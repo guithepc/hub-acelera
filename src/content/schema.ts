@@ -6,10 +6,13 @@ const publicVideo = z.string().regex(/^\/projects\/[a-z0-9-]+\/[\w.-]+\.(mp4|web
 
 export const contactKinds = ["github", "linkedin", "site", "instagram", "email"] as const;
 
-const contactSchema = z.strictObject({
-  kind: z.enum(contactKinds),
-  url: z.url(),
-});
+const webUrl = z.url({ protocol: /^https?$/, error: "use um endereço http ou https" });
+const mailUrl = z.url({ protocol: /^mailto$/, error: "contato de e-mail usa mailto:" });
+
+const contactSchema = z.discriminatedUnion("kind", [
+  z.strictObject({ kind: z.literal("email"), url: mailUrl }),
+  z.strictObject({ kind: z.enum(["github", "linkedin", "site", "instagram"]), url: webUrl }),
+]);
 
 const authorSchema = z.strictObject({
   name: text,
@@ -20,8 +23,8 @@ const authorSchema = z.strictObject({
 
 const linksSchema = z
   .strictObject({
-    site: z.url().optional(),
-    repo: z.url().optional(),
+    site: webUrl.optional(),
+    repo: webUrl.optional(),
   })
   .refine((links) => links.site !== undefined || links.repo !== undefined, {
     message: "informe pelo menos um link: site ou repo",

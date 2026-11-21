@@ -58,6 +58,10 @@ export function ProjectList({ projects }: { projects: ListProject[] }) {
       onPointerLeave={(event) => {
         if (event.pointerType === "mouse") setActive(none);
       }}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget))
+          setActive((current) => (current.kind === "inline" ? none : current));
+      }}
     >
       <ol className="border-line border-t">
         {projects.map((project, index) => {
@@ -106,6 +110,7 @@ export function ProjectList({ projects }: { projects: ListProject[] }) {
                       project={project}
                       load={inlineLoaded.has(project.slug)}
                       playing={isInline}
+                      reduceMotion={reduceMotion}
                       className="mt-6 w-full max-w-xl"
                     />
                     <span className="label text-mint mt-3 block pb-1">
@@ -139,6 +144,7 @@ export function ProjectList({ projects }: { projects: ListProject[] }) {
                 project={project}
                 load={floatingLoaded}
                 playing={shown}
+                reduceMotion={reduceMotion}
                 data-shown={shown}
                 className="col-start-1 row-start-1 shadow-2xl shadow-black/60 transition-opacity duration-150 data-[shown=false]:opacity-0"
               />
@@ -154,18 +160,20 @@ function Preview({
   project,
   load,
   playing,
+  reduceMotion,
   className = "",
   ...rest
 }: {
   project: ListProject;
   load: boolean;
   playing: boolean;
+  reduceMotion: boolean;
   className?: string;
   "data-shown"?: boolean;
 }) {
   const frame = `border-line bg-deep aspect-[16/10] h-auto rounded-lg border object-cover ${className}`;
   if (!load) return <span {...rest} className={`block ${frame}`} data-cover={project.slug} />;
-  if (project.previewVideo && playing) {
+  if (project.previewVideo && playing && !reduceMotion) {
     return (
       <video
         {...rest}

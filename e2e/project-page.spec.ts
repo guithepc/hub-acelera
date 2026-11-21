@@ -18,21 +18,33 @@ const project = JSON.parse(readFileSync(join(dir, first), "utf8")) as {
   authors: { name: string; contacts?: { url: string }[] }[];
 };
 
-test("a página mostra todos os blocos com os dados do arquivo", async ({ page }) => {
-  await page.goto(`/projetos/${slug}/`);
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText(project.name);
-  await expect(page.getByText(project.tagline, { exact: true })).toBeVisible();
-  await expect(page.getByText(project.description, { exact: true })).toBeVisible();
-  for (const highlight of project.highlights) await expect(page.getByText(highlight)).toBeVisible();
-  for (const technology of project.stack)
-    await expect(page.getByRole("listitem").filter({ hasText: technology }).first()).toBeVisible();
-  for (const author of project.authors)
-    await expect(page.getByTestId("author").filter({ hasText: author.name })).toBeVisible();
-  const scrollsSideways = await page.evaluate(
-    () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
-  );
-  expect(scrollsSideways).toBe(false);
-});
+type ProjectJson = typeof project;
+const all = files.map((file) => ({
+  slug: file.replace(/\.json$/, ""),
+  data: JSON.parse(readFileSync(join(dir, file), "utf8")) as ProjectJson,
+}));
+
+for (const { slug: each, data } of all) {
+  test(`${each}: a página mostra todos os blocos com os dados do arquivo`, async ({ page }) => {
+    await page.goto(`/projetos/${each}/`);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(data.name);
+    await expect(page.getByText(data.tagline, { exact: true })).toBeVisible();
+    await expect(page.getByText(data.description, { exact: true })).toBeVisible();
+    for (const highlight of data.highlights) await expect(page.getByText(highlight)).toBeVisible();
+    for (const technology of data.stack)
+      await expect(
+        page.getByRole("listitem").filter({ hasText: technology }).first(),
+      ).toBeVisible();
+    for (const author of data.authors)
+      await expect(page.getByTestId("author").filter({ hasText: author.name })).toBeVisible();
+    for (const url of Object.values(data.links))
+      await expect(page.locator(`a[href="${url}"]`).first()).toHaveAttribute("rel", /noopener/);
+    const scrollsSideways = await page.evaluate(
+      () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    );
+    expect(scrollsSideways).toBe(false);
+  });
+}
 
 test("os links do projeto e os contatos abrem o destino certo em nova aba", async ({ page }) => {
   await page.goto(`/projetos/${slug}/`);

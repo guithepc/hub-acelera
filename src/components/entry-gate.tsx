@@ -7,13 +7,13 @@ type Gate = { phase: "closed" } | { phase: "counting"; left: number } | { phase:
 
 const storageKey = "hub-acelera:entered";
 const tickMs = 380;
+const exitMs = 900;
 
 export const focusAfterOpenId = "inicio";
 
 export const gateBootScript = `try{if(sessionStorage.getItem(${JSON.stringify(storageKey)}))document.documentElement.dataset.entered="true"}catch{}`;
 
 function remember() {
-  document.documentElement.dataset.entered = "true";
   try {
     sessionStorage.setItem(storageKey, "1");
   } catch {
@@ -38,8 +38,20 @@ export function EntryGate() {
   useEffect(() => {
     if (gate.phase !== "open") return;
     remember();
-    document.getElementById(focusAfterOpenId)?.focus({ preventScroll: true });
-  }, [gate.phase]);
+    const anchor = document.getElementById(decodeURIComponent(window.location.hash.slice(1)));
+    if (anchor) anchor.scrollIntoView({ behavior: "instant" });
+    else window.scrollTo({ top: 0, behavior: "instant" });
+    (anchor ?? document.getElementById(focusAfterOpenId))?.focus({ preventScroll: true });
+    const timer = setTimeout(
+      () => {
+        document.documentElement.dataset.entered = "true";
+      },
+      reduceMotion ? 0 : exitMs,
+    );
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [gate.phase, reduceMotion]);
 
   const ignition = useRef<HTMLButtonElement>(null);
   const skip = useRef<HTMLButtonElement>(null);

@@ -77,6 +77,22 @@ test.describe("com mouse", () => {
   });
 });
 
+test.describe("com teclado", () => {
+  test.skip(({ isMobile }) => isMobile, "teclado é de desktop");
+
+  test("o preview aberto pelo teclado fecha quando o foco sai da lista", async ({ page }) => {
+    const all = await rows(page).all();
+    await page.getByRole("heading", { level: 1 }).click();
+    for (const row of all) {
+      await page.keyboard.press("Tab");
+      await expect(row).toBeFocused();
+    }
+    await expect(page.locator('[data-testid="inline-preview"][data-open="true"]')).toHaveCount(1);
+    await page.keyboard.press("Tab");
+    await expect(page.locator('[data-testid="inline-preview"][data-open="true"]')).toHaveCount(0);
+  });
+});
+
 test.describe("com toque", () => {
   test.skip(({ isMobile }) => !isMobile, "toque só no celular");
 

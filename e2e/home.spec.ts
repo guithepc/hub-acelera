@@ -75,3 +75,37 @@ test("a home não rola para o lado", async ({ page }) => {
   );
   expect(scrollsSideways).toBe(false);
 });
+
+test("sem JavaScript, a entrada não cobre o conteúdo", async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  const page = await context.newPage();
+  await page.goto("/");
+  await expect(gate(page)).toBeHidden();
+  await page.getByRole("link", { name: /Ver projetos/ }).click();
+  await expect(page.getByTestId("project").first()).toBeVisible();
+  const overflow = await page.locator("html").evaluate((html) => getComputedStyle(html).overflowY);
+  expect(overflow).not.toBe("hidden");
+  await context.close();
+});
+
+test("a página não rola atrás da entrada, e entrar mostra o hero", async ({ page, isMobile }) => {
+  test.skip(isMobile, "roda do mouse é de desktop");
+  await page.goto("/");
+  await expect(gate(page)).toHaveAttribute("data-phase", "closed");
+  await page.mouse.wheel(0, 1500);
+  await page.keyboard.press("PageDown");
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  await page.getByRole("button", { name: "Entrar sem contagem" }).click();
+  await expect(page.getByRole("heading", { level: 1 })).toBeInViewport();
+  await page.mouse.wheel(0, 600);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+});
+
+test("a entrada sai com a animação antes de sumir", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Entrar sem contagem" }).click();
+  await expect(gate(page)).toHaveAttribute("data-phase", "open");
+  const display = () => gate(page).evaluate((element) => getComputedStyle(element).display);
+  expect(await display()).not.toBe("none");
+  await expect.poll(display, { timeout: 3000 }).toBe("none");
+});

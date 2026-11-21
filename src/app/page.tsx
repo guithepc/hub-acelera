@@ -11,6 +11,9 @@ export default function Home() {
   return (
     <main className="flex-1">
       <script dangerouslySetInnerHTML={{ __html: gateBootScript }} />
+      <noscript>
+        <style>{"#entry-gate{display:none}html{overflow:auto!important}"}</style>
+      </noscript>
       <EntryGate />
 
       <section className="relative isolate flex min-h-svh flex-col justify-center overflow-hidden px-5 pt-24 pb-28 sm:px-9">
@@ -44,7 +47,12 @@ export default function Home() {
         </p>
       </section>
 
-      <section id="projetos" aria-labelledby="projetos-titulo" className="scroll-mt-8 pt-20 pb-24">
+      <section
+        id="projetos"
+        tabIndex={-1}
+        aria-labelledby="projetos-titulo"
+        className="scroll-mt-8 pt-20 pb-24 outline-none"
+      >
         <div className="px-5 pb-10 sm:px-9 sm:pb-14">
           <p className="label text-mint">Em órbita</p>
           <h2
