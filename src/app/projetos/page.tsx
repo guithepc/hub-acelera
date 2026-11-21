@@ -1,26 +1,34 @@
 import type { Metadata } from "next";
+import { ProjectList } from "@/components/project-list";
 import { getProjects } from "@/content/projects";
 import { pageTitle } from "@/lib/site";
 
-export const metadata: Metadata = { title: pageTitle("Projetos") };
+export const metadata: Metadata = {
+  title: pageTitle("Projetos"),
+  description: "Os projetos construídos pela comunidade Acelera Dev e quem construiu cada um.",
+};
 
 export default function ProjectsPage() {
-  const projects = getProjects();
+  const projects = getProjects().map((project) => ({
+    slug: project.slug,
+    name: project.name,
+    tagline: project.tagline,
+    cover: project.cover,
+    previewVideo: project.previewVideo,
+    authorNames: project.authors.map((author) => author.name),
+  }));
 
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8 p-8">
-      <h1 className="text-4xl font-semibold tracking-tight">Projetos</h1>
-      <ul className="flex flex-col gap-6">
-        {projects.map((project) => (
-          <li key={project.slug} data-testid="project">
-            <h2 className="text-2xl font-medium">{project.name}</h2>
-            <p className="opacity-70">{project.tagline}</p>
-            <p className="text-sm opacity-60">
-              Por {project.authors.map((author) => author.name).join(", ")}
-            </p>
-          </li>
-        ))}
-      </ul>
+    <main className="flex-1 pt-28 pb-24 sm:pt-36">
+      <div className="px-5 pb-10 sm:px-9 sm:pb-14">
+        <p className="label text-mint">
+          {String(projects.length).padStart(2, "0")} projetos em órbita
+        </p>
+        <h1 className="font-display mt-4 text-5xl leading-[0.9] font-black tracking-tighter sm:text-8xl">
+          Projetos
+        </h1>
+      </div>
+      <ProjectList projects={projects} />
     </main>
   );
 }
