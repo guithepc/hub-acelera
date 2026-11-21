@@ -1,0 +1,9 @@
+<meta property="og:title" content="Rota Segura"/>
+<meta property="og:description" content="Rotas a pé mais seguras, com dados abertos da cidade."/>
+<meta property="og:url" content="http://localhost:3100/projetos/rota-segura/"/>
+<meta property="og:image" content="http://localhost:3100/projects/rota-segura/cover.svg"/>
+<meta property="og:type" content="article"/>
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="Rota Segura"/>
+<meta name="twitter:description" content="Rotas a pé mais seguras, com dados abertos da cidade."/>
+<meta name="twitter:image" content="http://localhost:3100/projects/rota-segura/cover.svg"/>
