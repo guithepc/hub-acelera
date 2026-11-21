@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { ProjectList } from "@/components/project-list";
-import { getProjects } from "@/content/projects";
+import { getListProjects } from "@/content/list";
 import { pageTitle } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -9,14 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default function ProjectsPage() {
-  const projects = getProjects().map((project) => ({
-    slug: project.slug,
-    name: project.name,
-    tagline: project.tagline,
-    cover: project.cover,
-    previewVideo: project.previewVideo,
-    authorNames: project.authors.map((author) => author.name),
-  }));
+  const projects = getListProjects();
 
   return (
     <main className="flex-1 pt-28 pb-24 sm:pt-36">
