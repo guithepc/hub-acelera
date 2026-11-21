@@ -1,0 +1,26 @@
+{
+  "name": "Acelera Commits",
+  "tagline": "Um jogo para aprender git de verdade, direto no navegador.",
+  "description": "Você entra na tripulação da nave AceleraOne e cumpre missões com comandos reais de git, em um terminal simulado no navegador, sem instalar nada. Cada missão conferida vale XP, você sobe de nível e disputa o ranking da semana. A comunidade Acelera Dev tem uma turma própria, com ranking só dela.",
+  "highlights": [
+    "Missões com git de verdade: commit, branch, merge, conflitos e rebase",
+    "Grafo de commits que se redesenha a cada comando",
+    "Pull request e code review no GitHub entre as missões",
+    "XP, níveis e ranking semanal da tripulação",
+    "Turmas com ranking próprio, com entrada por link de convite"
+  ],
+  "stack": ["Next.js"],
+  "links": { "site": "https://acelera-commits.luanderson.dev.br" },
+  "cover": "/projects/acelera-commits/cover.jpg",
+  "screenshots": ["/projects/acelera-commits/missoes.jpg"],
+  "authors": [
+    {
+      "name": "Luanderson",
+      "contacts": [
+        { "kind": "github", "url": "https://github.com/luanderson-dev" },
+        { "kind": "linkedin", "url": "https://www.linkedin.com/in/luanderson-dev" }
+      ]
+    }
+  ],
+  "order": 1
+}
