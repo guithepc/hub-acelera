@@ -10,6 +10,9 @@ export function SiteHeader() {
         <Link href="/projetos/" className="hover:text-ink transition-colors">
           Projetos
         </Link>
+        <Link href="/#sobre" className="hover:text-ink transition-colors">
+          Sobre
+        </Link>
       </nav>
     </header>
   );
