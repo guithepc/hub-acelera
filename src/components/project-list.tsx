@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, useMotionValue, useReducedMotion, useSpring } from "motion/react";
+import { useReducedMotion } from "@/lib/use-reduced-motion";
+import { motion, useMotionValue, useSpring } from "motion/react";
 import Link from "next/link";
 import { useState, type PointerEvent } from "react";
 import type { Project } from "@/content/schema";
@@ -18,7 +19,7 @@ const previewWidth = 440;
 export function ProjectList({ projects }: { projects: ListProject[] }) {
   const [active, setActive] = useState<Active>(none);
   const [lastPointer, setLastPointer] = useState<string>("mouse");
-  const reduceMotion = useReducedMotion() ?? false;
+  const reduceMotion = useReducedMotion();
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const spring = { stiffness: 380, damping: 32, mass: 0.5 };
@@ -60,7 +61,7 @@ export function ProjectList({ projects }: { projects: ListProject[] }) {
                 href={`/projetos/${project.slug}/`}
                 data-slug={project.slug}
                 data-active={isActive}
-                className="group grid grid-cols-[2.5rem_1fr] items-baseline gap-x-3 px-5 py-7 outline-offset-[-2px] sm:grid-cols-[4rem_1fr_auto] sm:px-9 sm:py-9"
+                className="group grid touch-manipulation grid-cols-[2.5rem_1fr] items-baseline gap-x-3 px-5 py-7 outline-offset-[-2px] sm:grid-cols-[4rem_1fr_auto] sm:px-9 sm:py-9"
                 onPointerDown={(event) => {
                   setLastPointer(event.pointerType);
                 }}
