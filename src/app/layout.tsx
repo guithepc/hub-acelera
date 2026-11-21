@@ -10,6 +10,7 @@ const instrument = Instrument_Sans({ variable: "--font-instrument", subsets: ["l
 const martian = Martian_Mono({ variable: "--font-martian", subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(site.url),
   title: pageTitle(),
   description: site.description,
 };

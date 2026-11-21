@@ -34,6 +34,14 @@ Na primeira vez, os testes de ponta a ponta pedem o navegador:
 npx playwright install chromium
 ```
 
+## Variáveis de ambiente
+
+| Variável   | Para que serve                                                                 | Padrão                  |
+| ---------- | ------------------------------------------------------------------------------ | ----------------------- |
+| `SITE_URL` | Endereço público do site. Usado nos links de compartilhamento de cada projeto. | `http://localhost:3100` |
+
+Defina no build de produção: `SITE_URL=https://seu-dominio npm run build`.
+
 ## Como adicionar um projeto
 
 Cada projeto é um arquivo JSON em `content/projects/`. O nome do arquivo vira a URL: `content/projects/meu-projeto.json` aparece em `/projetos/meu-projeto/`.

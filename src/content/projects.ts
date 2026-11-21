@@ -18,7 +18,3 @@ export const getProjects = cache((): Project[] =>
       ),
   ),
 );
-
-export function getProject(slug: string): Project | undefined {
-  return getProjects().find((project) => project.slug === slug);
-}
