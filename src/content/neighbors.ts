@@ -11,7 +11,10 @@ export function neighbors<T>(
 
 export function initials(name: string): string {
   const words = name.trim().split(/\s+/);
-  const first = words[0]?.[0] ?? "";
-  const last = words.length > 1 ? (words.at(-1)?.[0] ?? "") : "";
+  const letter = (word: string | undefined) =>
+    /^\p{L}/u.test(word ?? "") ? (Array.from(word ?? "")[0] ?? "") : "";
+  const named = words.filter((word) => letter(word) !== "");
+  const first = letter(named[0]);
+  const last = named.length > 1 ? letter(named.at(-1)) : "";
   return (first + last).toUpperCase();
 }

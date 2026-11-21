@@ -1,24 +1,26 @@
 "use client";
 
 import { useReducedMotion } from "@/lib/use-reduced-motion";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 type Gate = { phase: "closed" } | { phase: "counting"; left: number } | { phase: "open" };
 
-const storageKey = "hub-acelera:entered";
+const cookieName = "hub_acelera_entered";
 const tickMs = 380;
 const exitMs = 900;
 
 export const focusAfterOpenId = "inicio";
 
-export const gateBootScript = `try{if(sessionStorage.getItem(${JSON.stringify(storageKey)}))document.documentElement.dataset.entered="true"}catch{}`;
+const rememberSource = `document.cookie="${cookieName}=1; path=/; SameSite=Lax";document.documentElement.dataset.entered="true"`;
+
+export const gateBootScript = `(function(){var h=document.documentElement;if(document.cookie.indexOf("${cookieName}=1")>-1)h.dataset.entered="true";document.addEventListener("click",function(e){var g=document.getElementById("entry-gate");if(g&&g.dataset.ready!=="true"&&e.target.closest&&e.target.closest("#entry-gate button")){${rememberSource}}})})()`;
+
+function subscribeToNothing() {
+  return () => undefined;
+}
 
 function remember() {
-  try {
-    sessionStorage.setItem(storageKey, "1");
-  } catch {
-    return;
-  }
+  document.cookie = `${cookieName}=1; path=/; SameSite=Lax`;
 }
 
 export function EntryGate() {
@@ -56,6 +58,12 @@ export function EntryGate() {
   const ignition = useRef<HTMLButtonElement>(null);
   const skip = useRef<HTMLButtonElement>(null);
 
+  const ready = useSyncExternalStore(
+    subscribeToNothing,
+    () => true,
+    () => false,
+  );
+
   const trapped = gate.phase !== "open";
   const counting = gate.phase === "counting";
 
@@ -86,6 +94,7 @@ export function EntryGate() {
       aria-modal="true"
       aria-label="Entrada do Hub Acelera"
       data-testid="entry-gate"
+      data-ready={ready}
       data-phase={gate.phase}
       inert={gate.phase === "open"}
       className="bg-void fixed inset-0 z-40 grid place-items-center bg-[linear-gradient(var(--color-line)_1px,transparent_1px),linear-gradient(90deg,var(--color-line)_1px,transparent_1px)] bg-[size:100%_48px,48px_100%] transition-[clip-path] duration-900 ease-[cubic-bezier(0.7,0,0.2,1)] [clip-path:inset(0_0_0_0)] data-[phase=open]:pointer-events-none data-[phase=open]:[clip-path:inset(0_0_100%_0)]"
@@ -116,7 +125,7 @@ export function EntryGate() {
           onClick={() => {
             setGate({ phase: "open" });
           }}
-          className="label text-dim hover:text-ink cursor-pointer transition-colors"
+          className="label text-dim hover:text-ink cursor-pointer px-4 py-3 transition-colors"
         >
           Entrar sem contagem
         </button>

@@ -133,3 +133,64 @@ test("a entrada não volta ao chegar na home por um link, depois de recarregar o
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("HubAcelera");
   await expect(gate(page)).toBeHidden();
 });
+
+test("a entrada não reaparece em uma aba nova da mesma sessão", async ({ page, context }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Entrar sem contagem" }).click();
+  await expect(gate(page)).toHaveAttribute("data-phase", "open");
+  const second = await context.newPage();
+  await second.goto("/");
+  await expect(second.getByTestId("entry-gate")).toBeHidden();
+});
+
+test("um clique na entrada antes de o JavaScript carregar não é perdido", async ({ page }) => {
+  await page.route(/_next\/static\/.*\.js/, async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 2500));
+    await route.continue();
+  });
+  await page.goto("/", { waitUntil: "commit" });
+  const skip = page.getByRole("button", { name: "Entrar sem contagem" });
+  await skip.waitFor();
+  await expect(gate(page)).not.toHaveAttribute("data-ready", "true");
+  await skip.click();
+  await expect(gate(page)).toBeHidden();
+  await expect(page.getByRole("link", { name: /Ver projetos/ })).toBeVisible();
+});
+
+for (const width of [320, 360]) {
+  test(`em ${String(width)} px nenhuma página rola para o lado`, async ({ page, isMobile }) => {
+    test.skip(isMobile, "largura fixada no teste");
+    await page.setViewportSize({ width, height: 700 });
+    await page.goto("/projetos/");
+    const paths = await page
+      .getByTestId("project")
+      .getByRole("link")
+      .evaluateAll((links) => links.map((link) => link.getAttribute("href") ?? ""));
+    for (const path of ["/", "/projetos/", "/projetos/nao-existe/", ...paths]) {
+      await page.goto(path);
+      const overflow = await page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      );
+      expect(overflow, path).toBeLessThanOrEqual(0);
+    }
+  });
+}
+
+test("no celular, os links de contato e de navegação têm pelo menos 24 px de altura", async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(!isMobile, "alvo de toque é de celular");
+  await page.goto("/projetos/");
+  const first = await page.getByTestId("project").getByRole("link").first().getAttribute("href");
+  await page.goto(first ?? "/");
+  const small = await page.locator("header a, main a").evaluateAll((links) =>
+    links
+      .map((link) => ({
+        text: link.textContent.trim(),
+        height: link.getBoundingClientRect().height,
+      }))
+      .filter((link) => link.height < 24),
+  );
+  expect(small).toEqual([]);
+});
