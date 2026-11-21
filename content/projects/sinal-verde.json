@@ -1,0 +1,11 @@
+{
+  "name": "Sinal Verde",
+  "tagline": "Monitor de deploys que avisa no WhatsApp quando algo cai.",
+  "description": "Projeto fictício de exemplo. Um monitor que checa seus serviços a cada minuto e manda um aviso curto quando algum para de responder.",
+  "highlights": ["Checagem a cada minuto", "Histórico de 90 dias", "Página de status pública"],
+  "stack": ["Go", "Postgres", "Docker"],
+  "links": { "site": "https://example.com/sinal-verde" },
+  "cover": "/projects/sinal-verde/cover.svg",
+  "authors": [{ "name": "Diego Teste", "role": "Fullstack" }],
+  "order": 3
+}

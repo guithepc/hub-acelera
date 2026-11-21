@@ -1,0 +1,16 @@
+{
+  "name": "Caderno de Bordo",
+  "tagline": "Diário de estudos que cobra você no dia seguinte.",
+  "description": "Projeto fictício de exemplo. Um diário de estudos em que cada anotação vira uma pergunta de revisão no dia seguinte.",
+  "highlights": ["Revisão espaçada automática", "Exporta tudo em Markdown"],
+  "stack": ["Next.js", "SQLite"],
+  "links": { "repo": "https://github.com/example/caderno-de-bordo" },
+  "cover": "/projects/caderno-de-bordo/cover.svg",
+  "authors": [
+    {
+      "name": "Carla Amostra",
+      "contacts": [{ "kind": "site", "url": "https://example.com/carla" }]
+    }
+  ],
+  "order": 2
+}
