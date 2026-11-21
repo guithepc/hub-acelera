@@ -69,7 +69,9 @@ export default async function ProjectPage({ params }: PageProps<"/projetos/[slug
         <img
           src={project.cover}
           alt={`Tela do projeto ${project.name}`}
-          className="border-line bg-deep mt-12 aspect-[16/10] w-full border-y object-cover sm:mt-16"
+          width={1600}
+          height={1000}
+          className="border-line bg-deep mt-12 aspect-[16/10] h-auto w-full border-y object-cover sm:mt-16"
         />
 
         <div className="grid gap-12 px-5 py-16 sm:px-9 lg:grid-cols-[1fr_20rem] lg:gap-20">
@@ -128,7 +130,9 @@ export default async function ProjectPage({ params }: PageProps<"/projetos/[slug
                     src={screenshot}
                     alt={`${project.name}, tela ${String(screenshotIndex + 1)}`}
                     loading="lazy"
-                    className="border-line bg-deep w-full rounded-lg border"
+                    width={1600}
+                    height={1000}
+                    className="border-line bg-deep h-auto w-full rounded-lg border"
                   />
                 </li>
               ))}

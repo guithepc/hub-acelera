@@ -12,7 +12,9 @@
     "test:e2e": "playwright test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "npm run lint && npm run typecheck && npm run format:check && npm run test"
+    "check": "npm run lint && npm run typecheck && npm run format:check && npm run test",
+    "measure": "node scripts/measure.mjs",
+    "measure:fps": "node scripts/fps.mjs"
   },
   "dependencies": {
     "motion": "^14.14.0",

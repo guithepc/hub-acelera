@@ -34,6 +34,17 @@ Na primeira vez, os testes de ponta a ponta pedem o navegador:
 npx playwright install chromium
 ```
 
+## Medir performance
+
+Com o build servido em `npm run preview`:
+
+```bash
+npm run measure -- docs/evidence/<ISSUE>/lighthouse   # Lighthouse, 5 rodadas por página, desktop e celular
+npm run measure:fps                                   # quadros por segundo do hero, com CPU limitada
+```
+
+`measure` precisa do Google Chrome instalado. Ele imprime a mediana e a faixa de cada métrica e grava `resumo.json`. As medições brutas não são versionadas.
+
 ## Variáveis de ambiente
 
 | Variável   | Para que serve                                                                 | Padrão                  |

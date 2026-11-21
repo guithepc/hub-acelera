@@ -1,5 +1,5 @@
 import { AboutSection } from "@/components/about-section";
-import { EntryGate, gateBootScript } from "@/components/entry-gate";
+import { EntryGate, focusAfterOpenId, gateBootScript } from "@/components/entry-gate";
 import { ProjectList } from "@/components/project-list";
 import { WarpField } from "@/components/warp-field";
 import { getListProjects } from "@/content/list";
@@ -20,7 +20,11 @@ export default function Home() {
             {String(projects.length).padStart(2, "0")} projetos ·{" "}
             {String(authors.size).padStart(2, "0")} autores
           </p>
-          <h1 className="font-display mt-5 text-[clamp(3.4rem,13.5vw,13.75rem)] leading-[0.84] font-black tracking-[-0.04em]">
+          <h1
+            id={focusAfterOpenId}
+            tabIndex={-1}
+            className="font-display outline-none mt-5 text-[clamp(3.4rem,13.5vw,13.75rem)] leading-[0.84] font-black tracking-[-0.04em]"
+          >
             Hub
             <br />
             <span className="text-mint">Acelera</span>
