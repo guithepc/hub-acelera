@@ -1,3 +1,4 @@
+import { AboutSection } from "@/components/about-section";
 import { EntryGate, gateBootScript } from "@/components/entry-gate";
 import { ProjectList } from "@/components/project-list";
 import { WarpField } from "@/components/warp-field";
@@ -51,6 +52,8 @@ export default function Home() {
         </div>
         <ProjectList projects={projects} />
       </section>
+
+      <AboutSection />
     </main>
   );
 }

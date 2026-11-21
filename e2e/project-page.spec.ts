@@ -48,7 +48,7 @@ test("os links do projeto e os contatos abrem o destino certo em nova aba", asyn
   }
   const target = expected[0];
   if (!target) throw new Error("sem link para clicar");
-  await page.route(/^https?:\/\/(?!localhost)/, (route) => route.fulfill({ body: "ok" }));
+  await page.context().route(/^https?:\/\/(?!localhost)/, (route) => route.fulfill({ body: "ok" }));
   const [popup] = await Promise.all([
     page.waitForEvent("popup"),
     page.locator(`a[href="${target}"]`).first().click(),
