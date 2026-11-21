@@ -60,9 +60,13 @@ test.describe("com mouse", () => {
     const first = rows(page).first();
     await first.hover();
     await expect(shownCover(page)).toHaveAttribute("data-cover", await slugOf(first));
-    const position = await page.evaluate(() => ({ x: innerWidth / 2, y: innerHeight / 2 }));
-    await page.mouse.move(position.x, position.y);
-    await page.mouse.wheel(0, 350);
+    const box = await first.boundingBox();
+    if (!box) throw new Error("item sem caixa");
+    const position = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+    const second = await rows(page).nth(1).boundingBox();
+    if (!second) throw new Error("segundo item sem caixa");
+    await page.mouse.wheel(0, second.y - box.y);
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
     await expect
       .poll(async () => {
         const under = await page.evaluate(
@@ -75,9 +79,10 @@ test.describe("com mouse", () => {
           (await shownCover(page).count()) === 1
             ? await shownCover(page).getAttribute("data-cover")
             : null;
-        return under === shown;
+        return under !== null && under === shown;
       })
       .toBe(true);
+    await expect(shownCover(page)).not.toHaveAttribute("data-cover", await slugOf(first));
   });
 
   test("perto da borda de baixo o preview fica inteiro dentro da tela", async ({ page }) => {

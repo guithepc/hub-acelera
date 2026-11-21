@@ -30,7 +30,7 @@ export function ProjectList({ projects }: { projects: ListProject[] }) {
   const springX = useSpring(x, spring);
   const springY = useSpring(y, spring);
 
-  const pointer = useRef({ x: 0, y: 0 });
+  const pointer = useRef({ x: 0, y: 0, inside: false });
 
   function showUnder(target: Element | null) {
     const slug = target?.closest<HTMLElement>("[data-slug]")?.dataset.slug;
@@ -48,7 +48,7 @@ export function ProjectList({ projects }: { projects: ListProject[] }) {
   function follow(event: PointerEvent) {
     if (event.pointerType !== "mouse") return;
     setFloatingLoaded(true);
-    pointer.current = { x: event.clientX, y: event.clientY };
+    pointer.current = { x: event.clientX, y: event.clientY, inside: true };
     const left = Math.min(event.clientX + 28, window.innerWidth - previewWidth - edge);
     const top = Math.min(event.clientY - 140, window.innerHeight - previewHeight - edge);
     x.set(Math.max(edge, left));
@@ -56,21 +56,20 @@ export function ProjectList({ projects }: { projects: ListProject[] }) {
     showUnder(event.target as Element);
   }
 
-  const floating = active.kind === "floating";
   const showUnderRef = useRef(showUnder);
   useEffect(() => {
     showUnderRef.current = showUnder;
   });
   useEffect(() => {
-    if (!floating) return;
     function onScroll() {
+      if (!pointer.current.inside) return;
       showUnderRef.current(document.elementFromPoint(pointer.current.x, pointer.current.y));
     }
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", onScroll);
     };
-  }, [floating]);
+  }, []);
 
   function openInline(slug: string) {
     setInlineLoaded((loaded) => (loaded.has(slug) ? loaded : new Set(loaded).add(slug)));
@@ -81,7 +80,9 @@ export function ProjectList({ projects }: { projects: ListProject[] }) {
     <div
       onPointerMove={follow}
       onPointerLeave={(event) => {
-        if (event.pointerType === "mouse") setActive(none);
+        if (event.pointerType !== "mouse") return;
+        pointer.current.inside = false;
+        setActive(none);
       }}
       onBlur={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget))
