@@ -23,6 +23,30 @@ test("na entrada, o foco começa na ignição e não escapa para trás dela", as
   await expect(page.getByTestId("entry-gate")).toHaveAttribute("data-phase", "open");
 });
 
+test("o foco não escapa da entrada com Shift+Tab, nem depois de clicar no fundo", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const ignition = page.getByRole("button", { name: "Ignição" });
+  const skip = page.getByRole("button", { name: "Entrar sem contagem" });
+  await expect(ignition).toBeFocused();
+  await page.getByTestId("entry-gate").click({ position: { x: 5, y: 5 } });
+  await page.keyboard.press("Shift+Tab");
+  await expect(ignition.or(skip).and(page.locator(":focus"))).toHaveCount(1);
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/\/$/);
+});
+
+test("durante a contagem o foco fica no botão de pular", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("button", { name: "Ignição" })).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.getByTestId("entry-gate")).toHaveAttribute("data-phase", "counting");
+  await expect(page.getByRole("button", { name: "Entrar sem contagem" })).toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  await expect(page.getByRole("button", { name: "Entrar sem contagem" })).toBeFocused();
+});
+
 test("só com o teclado dá para chegar em todo projeto, a partir da home", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("button", { name: "Ignição" })).toBeFocused();

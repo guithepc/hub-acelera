@@ -53,6 +53,48 @@ test.describe("com mouse", () => {
     await expect(shownCover(page)).toHaveAttribute("data-cover", await slugOf(last));
   });
 
+  test("rolar a página sem mexer o mouse troca o preview para o projeto sob o cursor", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 500 });
+    const first = rows(page).first();
+    await first.hover();
+    await expect(shownCover(page)).toHaveAttribute("data-cover", await slugOf(first));
+    const position = await page.evaluate(() => ({ x: innerWidth / 2, y: innerHeight / 2 }));
+    await page.mouse.move(position.x, position.y);
+    await page.mouse.wheel(0, 350);
+    await expect
+      .poll(async () => {
+        const under = await page.evaluate(
+          ({ x, y }) =>
+            document.elementFromPoint(x, y)?.closest<HTMLElement>("[data-slug]")?.dataset.slug ??
+            null,
+          position,
+        );
+        const shown =
+          (await shownCover(page).count()) === 1
+            ? await shownCover(page).getAttribute("data-cover")
+            : null;
+        return under === shown;
+      })
+      .toBe(true);
+  });
+
+  test("perto da borda de baixo o preview fica inteiro dentro da tela", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    const row = rows(page).nth(1);
+    const box = await row.boundingBox();
+    if (!box) throw new Error("item sem caixa");
+    await row.hover();
+    await page.mouse.move(box.x + box.width / 2, Math.min(box.y + box.height - 4, 712));
+    await expect
+      .poll(async () => {
+        const preview = await floating(page).boundingBox();
+        return preview ? preview.y + preview.height : Infinity;
+      })
+      .toBeLessThanOrEqual(720);
+  });
+
   test("sair da lista esconde o preview", async ({ page }) => {
     await rows(page).first().hover();
     await page.getByRole("heading", { level: 1 }).hover();

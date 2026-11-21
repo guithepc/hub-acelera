@@ -53,8 +53,19 @@ test("com movimento reduzido não há contagem nem animação, e a home continua
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
+  await expect(page.getByRole("button", { name: "Ignição" })).toBeFocused();
+  await gate(page).evaluate((element) => {
+    const seen: string[] = [];
+    new MutationObserver(() => seen.push(element.dataset.phase ?? "")).observe(element, {
+      attributeFilter: ["data-phase"],
+    });
+    (window as unknown as { phases: string[] }).phases = seen;
+  });
   await page.getByRole("button", { name: "Ignição" }).click();
   await expect(gate(page)).toHaveAttribute("data-phase", "open");
+  expect(await page.evaluate(() => (window as unknown as { phases: string[] }).phases)).toEqual([
+    "open",
+  ]);
   await expect(page.getByTestId("warp-field")).toHaveAttribute("data-animated", "false");
   const before = await canvasInk(page);
   await page.waitForTimeout(400);
@@ -108,4 +119,17 @@ test("a entrada sai com a animação antes de sumir", async ({ page }) => {
   const display = () => gate(page).evaluate((element) => getComputedStyle(element).display);
   expect(await display()).not.toBe("none");
   await expect.poll(display, { timeout: 3000 }).toBe("none");
+});
+
+test("a entrada não volta ao chegar na home por um link, depois de recarregar outra página", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Entrar sem contagem" }).click();
+  await expect(gate(page)).toHaveAttribute("data-phase", "open");
+  await page.goto("/projetos/");
+  await page.getByRole("link", { name: /Acelera Dev \/ Hub/ }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("HubAcelera");
+  await expect(gate(page)).toBeHidden();
 });

@@ -1,5 +1,5 @@
 import { AboutSection } from "@/components/about-section";
-import { EntryGate, focusAfterOpenId, gateBootScript } from "@/components/entry-gate";
+import { EntryGate, focusAfterOpenId } from "@/components/entry-gate";
 import { ProjectList } from "@/components/project-list";
 import { WarpField } from "@/components/warp-field";
 import { getListProjects } from "@/content/list";
@@ -10,7 +10,6 @@ export default function Home() {
 
   return (
     <main className="flex-1">
-      <script dangerouslySetInnerHTML={{ __html: gateBootScript }} />
       <noscript>
         <style>{"#entry-gate{display:none}html{overflow:auto!important}"}</style>
       </noscript>

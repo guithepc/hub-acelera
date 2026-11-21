@@ -30,6 +30,11 @@ Proof that the star field animates: two `canvas.toDataURL()` reads differ. Proof
 
 ## Gotchas
 
+- The gate locks page scroll and traps Tab at the document level while it is closed or counting. A test that scrolls or tabs before opening it is testing the gate.
+- The gate reads the session flag from an inline script in the root layout, so it also stays hidden when the home is reached by a link after a full load of another page.
+- After it opens, the gate stays in the DOM for 900 ms to play its exit animation, then gets `display: none`.
+- With JavaScript disabled a `<noscript>` style hides the gate.
+
 - Every screenshot of the hero needs the gate opened first, or it captures the gate.
 - The gate is remembered in `sessionStorage`. A new browser context shows it again. A reload in the same context does not.
 - Screenshots do not prove the animation is smooth. Frame rate is measured in the performance task.

@@ -3,7 +3,7 @@
 import { useReducedMotion } from "@/lib/use-reduced-motion";
 import { motion, useMotionValue, useSpring } from "motion/react";
 import Link from "next/link";
-import { useState, type PointerEvent } from "react";
+import { useEffect, useRef, useState, type PointerEvent } from "react";
 import type { Project } from "@/content/schema";
 
 type ListProject = Pick<Project, "slug" | "name" | "tagline" | "cover" | "previewVideo"> & {
@@ -15,6 +15,8 @@ type Active =
 
 const none: Active = { kind: "none" };
 const previewWidth = 440;
+const previewHeight = (previewWidth * 10) / 16;
+const edge = 16;
 
 export function ProjectList({ projects }: { projects: ListProject[] }) {
   const [active, setActive] = useState<Active>(none);
@@ -28,16 +30,12 @@ export function ProjectList({ projects }: { projects: ListProject[] }) {
   const springX = useSpring(x, spring);
   const springY = useSpring(y, spring);
 
-  function follow(event: PointerEvent) {
-    if (event.pointerType !== "mouse") return;
-    setFloatingLoaded(true);
-    const left = Math.min(event.clientX + 28, window.innerWidth - previewWidth - 16);
-    x.set(Math.max(16, left));
-    y.set(event.clientY - 140);
+  const pointer = useRef({ x: 0, y: 0 });
 
-    const slug = (event.target as Element).closest<HTMLElement>("[data-slug]")?.dataset.slug;
-    if (slug === undefined) return;
+  function showUnder(target: Element | null) {
+    const slug = target?.closest<HTMLElement>("[data-slug]")?.dataset.slug;
     setActive((current) => {
+      if (slug === undefined) return current.kind === "floating" ? none : current;
       if (current.kind === "floating" && current.slug === slug) return current;
       if (reduceMotion || current.kind !== "floating") {
         springX.jump(x.get());
@@ -46,6 +44,33 @@ export function ProjectList({ projects }: { projects: ListProject[] }) {
       return { kind: "floating", slug };
     });
   }
+
+  function follow(event: PointerEvent) {
+    if (event.pointerType !== "mouse") return;
+    setFloatingLoaded(true);
+    pointer.current = { x: event.clientX, y: event.clientY };
+    const left = Math.min(event.clientX + 28, window.innerWidth - previewWidth - edge);
+    const top = Math.min(event.clientY - 140, window.innerHeight - previewHeight - edge);
+    x.set(Math.max(edge, left));
+    y.set(Math.max(edge, top));
+    showUnder(event.target as Element);
+  }
+
+  const floating = active.kind === "floating";
+  const showUnderRef = useRef(showUnder);
+  useEffect(() => {
+    showUnderRef.current = showUnder;
+  });
+  useEffect(() => {
+    if (!floating) return;
+    function onScroll() {
+      showUnderRef.current(document.elementFromPoint(pointer.current.x, pointer.current.y));
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, [floating]);
 
   function openInline(slug: string) {
     setInlineLoaded((loaded) => (loaded.has(slug) ? loaded : new Set(loaded).add(slug)));

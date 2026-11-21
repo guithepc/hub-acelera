@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Instrument_Sans, Martian_Mono, Unbounded } from "next/font/google";
+import { gateBootScript } from "@/components/entry-gate";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { pageTitle, site } from "@/lib/site";
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${unbounded.variable} ${instrument.variable} ${martian.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
+        <script dangerouslySetInnerHTML={{ __html: gateBootScript }} />
         <SiteHeader />
         {children}
         <SiteFooter />
