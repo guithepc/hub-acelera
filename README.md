@@ -1,128 +1,116 @@
-# Hub Acelera
+# Acelera Hub
 
-Vitrine dos projetos da comunidade Acelera Dev. Mostra o que os membros construíram e quem construiu.
+A 3D solar system that lists the projects built by the Acelera Dev community. Each project is a star that orbits a planet.
 
-O plano e o andamento ficam no Linear, projeto "Hub Acelera".
+Live at https://hub.aceleradev.com.br.
 
-## Rodar localmente
+![The solar system view, with one project star selected and its card open](docs/readme/solar-system.jpg)
 
-Requisitos: Node.js 22 ou mais novo e npm.
+## What the page does
+
+- The solar system view shows the Sun and eight planets. You drag to rotate and scroll to zoom.
+- Clicking a project star flies the camera to it and opens a card with a screenshot, the main stack and the author.
+- The "Saltar" button opens the project page: highlights, stack, a link to the project and the author's contacts.
+- The gallery view lists the same projects as cards, ordered by GitHub stars.
+- Uranus is reserved for Octo. A kraken sits on it.
+
+The interface text is in Portuguese.
+
+![The gallery view, with project cards ordered by GitHub stars](docs/readme/gallery.jpg)
+
+## How it is built
+
+The site is one HTML file, `site/index.html`, with its CSS and JavaScript inline. There is no build step.
+
+- Three.js r128 and OrbitControls load from a CDN.
+- Planet textures are drawn on a canvas at load time. Earth uses two image files in `site/tex/`.
+- Project screenshots are in `site/covers/`.
+- The fonts are Saira Condensed and JetBrains Mono, from Google Fonts.
+
+## Run it locally
 
 ```bash
 git clone https://github.com/guithepc/hub-acelera.git
-cd hub-acelera
+cd hub-acelera/site
+python3 -m http.server 3178
+```
+
+Open http://localhost:3178. Opening `index.html` straight from disk does not work, because the browser blocks the Earth textures.
+
+## Add a project
+
+All project data is in the `projects` array in `site/index.html`.
+
+1. Save a 1280 by 800 screenshot of the project as `site/covers/<name>.jpg`.
+2. Add an entry to `projects`:
+
+```js
+{ name: "My Project", who: "Your Name", tag: "One sentence about what it does.",
+  url: "https://my-project.com", shot: "covers/my-project.jpg",
+  stack: ["React", "PostgreSQL"], host: "Marte", stars: 12, repo: "https://github.com/you/my-project",
+  high: ["First highlight", "Second highlight", "Third highlight"] },
+```
+
+3. Add the author to the `crew` object, under the same name used in `who`:
+
+```js
+"Your Name": [["GitHub", "https://github.com/you"], ["LinkedIn", "https://www.linkedin.com/in/you"]],
+```
+
+Notes on the fields:
+
+- `host` is the planet the star orbits: Mercúrio, Vênus, Terra, Marte, Júpiter, Saturno or Netuno. A planet can hold more than one project. Do not use Urano.
+- `stars` and `repo` are optional. Leave them out when the repository is private or does not exist.
+- `stars` is a fixed number, copied from GitHub by hand. The page does not update it.
+- The gallery, the numbering and the arrow keys follow the order of `stars`, highest first.
+- Publish only contacts the author already lists on a public profile.
+
+## Deploy
+
+The site runs as an nginx container behind Traefik. `deploy/site.Dockerfile` copies `site/` into the image.
+
+On the server, inside the repository folder:
+
+```bash
+git pull
+docker compose up -d --build
+```
+
+Compose reads these variables from a `.env` file in the same folder:
+
+| Variable               | Purpose                                     | Default       |
+| ---------------------- | ------------------------------------------- | ------------- |
+| `HUB_DOMAIN`           | Public domain of the site. Required.        | none          |
+| `TRAEFIK_NETWORK`      | External Docker network Traefik listens on. | `traefik`     |
+| `TRAEFIK_ENTRYPOINT`   | Traefik HTTPS entrypoint.                   | `websecure`   |
+| `TRAEFIK_CERTRESOLVER` | Traefik certificate resolver.               | `letsencrypt` |
+
+Point the DNS record of the domain at the server before the first `docker compose up`. Traefik requests the certificate as soon as the container starts.
+
+The site is unavailable for about 30 seconds after each deploy. Traefik waits for the first container health check, which runs 30 seconds after start.
+
+To test the image on your machine without Traefik:
+
+```bash
+docker build -f deploy/site.Dockerfile -t hub-acelera:local .
+docker run --rm -p 3300:80 hub-acelera:local
+```
+
+## The earlier Next.js version
+
+The repository root still holds the first version of the site, a Next.js app with a project list and one page per project. The container no longer serves it. CI still lints, tests and builds it on every pull request.
+
+To run it:
+
+```bash
 npm ci
 npm run dev
 ```
 
-Abra http://localhost:3000.
+Its project data is in `content/projects/` and its format is in `src/content/schema.ts`.
 
-## Comandos
+## Contributing
 
-| Comando            | O que faz                                                           |
-| ------------------ | ------------------------------------------------------------------- |
-| `npm run dev`      | Sobe o site em modo de desenvolvimento.                             |
-| `npm run build`    | Gera o site estático na pasta `out/`.                               |
-| `npm run preview`  | Serve a pasta `out/` em http://localhost:3100.                      |
-| `npm run check`    | Roda lint, typecheck, formatação e testes unitários.                |
-| `npm run test:e2e` | Roda os testes de ponta a ponta contra o build. Rode o build antes. |
-| `npm run format`   | Formata o código com Prettier.                                      |
+All work goes in through a pull request. A pull request is merged only when CI passes.
 
-Na primeira vez, os testes de ponta a ponta pedem o navegador:
-
-```bash
-npx playwright install chromium
-```
-
-## Deploy
-
-O site vira uma imagem Docker com nginx, publicada atrás do Traefik.
-
-No servidor, dentro da pasta do repo:
-
-```bash
-git pull
-HUB_DOMAIN=hub.exemplo.com docker compose up -d --build
-```
-
-| Variável               | Para que serve                               | Padrão        |
-| ---------------------- | -------------------------------------------- | ------------- |
-| `HUB_DOMAIN`           | Domínio público do site. Obrigatória.        | sem padrão    |
-| `TRAEFIK_NETWORK`      | Rede Docker externa em que o Traefik escuta. | `traefik`     |
-| `TRAEFIK_ENTRYPOINT`   | Entrypoint HTTPS do Traefik.                 | `websecure`   |
-| `TRAEFIK_CERTRESOLVER` | Resolvedor de certificado do Traefik.        | `letsencrypt` |
-
-Antes do primeiro deploy, confira os três nomes do Traefik no servidor (`docker network ls` e a configuração do Traefik) e aponte o DNS do domínio para o servidor.
-
-Para testar a imagem na sua máquina, sem Traefik:
-
-```bash
-docker build --build-arg SITE_URL=http://localhost:3300 -t hub-acelera:local .
-docker run --rm -p 3300:80 hub-acelera:local
-```
-
-O build falha se `SITE_URL` não for informada, porque ela entra nos links de compartilhamento.
-
-## Medir performance
-
-Com o build servido em `npm run preview`:
-
-```bash
-npm run measure -- docs/evidence/<ISSUE>/lighthouse   # Lighthouse, 5 rodadas por página, desktop e celular
-npm run measure:fps                                   # quadros por segundo do hero, com CPU limitada
-```
-
-`measure` precisa do Google Chrome instalado. Ele imprime a mediana e a faixa de cada métrica e grava `resumo.json`. As medições brutas não são versionadas.
-
-## Variáveis de ambiente
-
-| Variável   | Para que serve                                                                 | Padrão                  |
-| ---------- | ------------------------------------------------------------------------------ | ----------------------- |
-| `SITE_URL` | Endereço público do site. Usado nos links de compartilhamento de cada projeto. | `http://localhost:3100` |
-
-Defina no build de produção: `SITE_URL=https://seu-dominio npm run build`.
-
-## Como adicionar um projeto
-
-Cada projeto é um arquivo JSON em `content/projects/`. O nome do arquivo vira a URL: `content/projects/meu-projeto.json` aparece em `/projetos/meu-projeto/`.
-
-1. Coloque as imagens em `public/projects/meu-projeto/`. A capa é obrigatória.
-2. Crie `content/projects/meu-projeto.json`:
-
-```json
-{
-  "name": "Meu Projeto",
-  "tagline": "Uma frase curta, até 120 caracteres.",
-  "description": "Um parágrafo sobre o que o projeto faz e para quem.",
-  "highlights": ["De 1 a 6 destaques", "Cada um em uma frase"],
-  "stack": ["Next.js", "Postgres"],
-  "links": { "site": "https://meu-projeto.com", "repo": "https://github.com/voce/meu-projeto" },
-  "cover": "/projects/meu-projeto/cover.png",
-  "authors": [
-    {
-      "name": "Seu Nome",
-      "role": "Fullstack",
-      "contacts": [{ "kind": "github", "url": "https://github.com/voce" }]
-    }
-  ]
-}
-```
-
-3. Rode `npm run build`. Se faltar um campo ou uma imagem, o build para e diz qual arquivo e qual campo.
-
-Campos opcionais: `previewVideo` (`.mp4` ou `.webm` curto, usado no preview), `screenshots` (lista de imagens), `order` (número, menor aparece primeiro, padrão 100), e em cada autor `role`, `avatar` e `contacts`.
-
-Em `links`, informe `site`, `repo` ou os dois. Os tipos de contato aceitos são `github`, `linkedin`, `site`, `instagram` e `email`. Publique só contatos que a pessoa já deixa públicos ou que ela autorizou.
-
-O formato completo está em `src/content/schema.ts`.
-
-## Stack
-
-- Next.js com App Router, exportado como site estático (`output: "export"`).
-- TypeScript estrito, ESLint com regras `strictTypeChecked` e Prettier.
-- Tailwind CSS e Motion para as animações.
-- Vitest para testes unitários e Playwright para testes de ponta a ponta.
-
-## Como contribuir
-
-Todo trabalho entra por pull request. O CI roda lint, typecheck, formatação, testes, build e testes de ponta a ponta. Um PR só entra com o CI verde.
+The plan and progress are tracked in Linear, in the "Hub Acelera" project.
