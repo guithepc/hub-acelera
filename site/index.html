@@ -1,0 +1,965 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Acelera Hub</title>
+<meta name="description" content="Os projetos da comunidade Acelera Dev em um sistema solar 3D: cada projeto é uma estrela em órbita de um planeta.">
+<meta name="theme-color" content="#0d0d0d">
+<meta property="og:title" content="Acelera Hub">
+<meta property="og:description" content="Os projetos da comunidade Acelera Dev em um sistema solar 3D: cada projeto é uma estrela em órbita de um planeta.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hub.aceleradev.com.br/">
+<link rel="canonical" href="https://hub.aceleradev.com.br/">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<style>[hidden] { display: none !important; }</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@600;700;800&family=JetBrains+Mono:wght@400;700&display=swap">
+<style>
+  /* Layout: the whole screen is a 3D solar system the visitor orbits. Text sits in the corners. Single dark look, by choice. */
+  :root {
+    --void: #0d0d0d;
+    --panel: #151515;
+    --rule: #262626;
+    --dim: #a2a2aa;
+    --ink: #f2f2f2;
+    --accent: #2ec9b4;
+    --display: "Saira Condensed", "Arial Narrow", Impact, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--void); color: var(--ink); font-family: var(--mono); overflow: hidden; }
+  button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+  .label { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dim); }
+  .gutter {
+    padding-left: max(24px, env(safe-area-inset-left, 0px));
+    padding-right: max(24px, env(safe-area-inset-right, 0px));
+  }
+
+  .space { position: relative; height: 100%; overflow: hidden; }
+  #scene { position: absolute; inset: 0; }
+  #scene canvas { display: block; width: 100%; height: 100%; cursor: grab; }
+  #scene canvas:active { cursor: grabbing; }
+  #tags { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+
+  .brand { position: absolute; left: 0; top: 0; padding-block: 24px; pointer-events: none; }
+  .brand .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-right: 8px; }
+  .brand h1 { margin: 12px 0 0; font-family: var(--display); font-weight: 800; font-size: clamp(40px, 5.4vw, 84px); line-height: 0.84; text-transform: uppercase; }
+  .brand p { margin: 12px 0 0; font-size: 14px; line-height: 1.5; color: var(--dim); max-width: 36ch; }
+
+  .views { position: absolute; right: 0; top: 0; z-index: 7; padding-block: 22px; display: flex; gap: 6px; }
+  .views button { border: 1px solid var(--rule); padding: 11px 15px; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); background: rgb(13 13 13 / 0.75); }
+  .views button:hover { color: var(--ink); border-color: var(--dim); }
+  .views button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--void); font-weight: 700; }
+
+  /* gallery: the same projects, with the screenshots doing the talking */
+  .gallery { position: absolute; inset: 132px 0 0; z-index: 5; overflow-y: auto; background: rgb(13 13 13 / 0.86); backdrop-filter: blur(3px); padding-block: 32px max(40px, env(safe-area-inset-bottom, 0px)); }
+  body[data-view="gallery"] .space::before { content: ""; position: absolute; inset: 0 0 auto; height: 132px; z-index: 5; background: var(--void); border-bottom: 1px solid var(--rule); }
+  .gallery .inner { max-width: 1240px; margin: 0 auto; }
+  .gallery ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 44px 32px; }
+  .work { display: flex; flex-direction: column; gap: 16px; }
+  .work .frame { position: relative; display: block; width: 100%; overflow: hidden; background: #0c0c10; border: 1px solid var(--rule); cursor: pointer; aspect-ratio: 16 / 10; }
+  .work .frame img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; transition: scale 0.5s ease-out; }
+  .work .frame:hover img { scale: 1.03; }
+  .work .frame:hover, .work .frame:focus-visible { border-color: var(--accent); }
+  .work .num { position: absolute; left: 0; top: 0; background: var(--accent); color: var(--void); font-weight: 700; font-size: 12px; letter-spacing: 0.1em; padding: 7px 10px; }
+  .work .meta { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; flex-wrap: wrap; }
+  .work h3 { margin: 0; font-family: var(--display); font-weight: 800; font-size: clamp(34px, 4vw, 60px); line-height: 0.9; text-transform: uppercase; }
+  .work p { margin: 8px 0 0; font-size: 14px; line-height: 1.55; color: #c8c8ce; max-width: 46ch; }
+  .work .side { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+  .work .go { background: var(--accent); color: var(--void); font-weight: 700; font-size: 13px; letter-spacing: 0.12em; padding: 13px 18px; text-decoration: none; white-space: nowrap; }
+  .work .go:hover { background: #6fe0cf; }
+  .work .more { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); padding: 8px 0; text-decoration: underline; text-underline-offset: 4px; }
+  .work .more:hover { color: var(--ink); }
+  body[data-view="gallery"] .dest, body[data-view="gallery"] .help, body[data-view="gallery"] #tags, body[data-view="gallery"] .brand p { display: none; }
+  body[data-view="gallery"] .brand { z-index: 6; }
+
+  .tag { position: absolute; left: 0; top: 0; white-space: nowrap; will-change: transform; }
+  .tag[hidden] { display: none; }
+  .tag.body { font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: rgb(242 242 242 / 0.5); translate: -50% 14px; text-shadow: 0 0 6px var(--void); }
+  .tag.project {
+    pointer-events: auto; translate: 14px -50%;
+    display: flex; align-items: center; gap: 8px; padding: 7px 11px 7px 9px;
+    font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
+    background: rgb(13 13 13 / 0.72); border: 1px solid rgb(46 201 180 / 0.4);
+  }
+  .tag.project::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+  .tag.project:hover { border-color: var(--accent); }
+  .tag.project[aria-pressed="true"] { background: var(--accent); color: var(--void); font-weight: 700; border-color: var(--accent); }
+  .tag.project[aria-pressed="true"]::before { background: var(--void); box-shadow: none; }
+
+  /* project card with the site preview */
+  .dest { position: absolute; left: 0; bottom: 0; width: min(420px, 100%); padding-block: 24px; padding-bottom: max(24px, env(safe-area-inset-bottom, 0px)); }
+  .card { background: rgb(18 18 22 / 0.92); border-top: 2px solid var(--accent); display: flex; flex-direction: column; backdrop-filter: blur(6px); }
+  .shot { position: relative; display: block; width: 100%; aspect-ratio: 16 / 10; background: #0c0c10; overflow: hidden; }
+  .shot img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; opacity: 0; transition: opacity 0.35s; }
+  .shot img.ready { opacity: 1; }
+  .shot .bar { position: absolute; inset: 0 0 auto; display: flex; align-items: center; gap: 6px; padding: 8px 10px; background: linear-gradient(rgb(13 13 13 / 0.85), rgb(13 13 13 / 0)); font-size: 11px; letter-spacing: 0.06em; color: var(--ink); }
+  .shot .bar i { width: 7px; height: 7px; border-radius: 50%; background: var(--dim); flex: none; }
+  .shot .bar span { margin-left: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .card .text { padding: 18px 22px 20px; display: flex; flex-direction: column; gap: 11px; }
+  .card h2 { margin: 0; font-family: var(--display); font-weight: 700; font-size: 42px; line-height: 0.92; text-transform: uppercase; text-wrap: balance; }
+  .card p { margin: 0; font-size: 14px; line-height: 1.55; color: #c8c8ce; }
+  .card .row { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+  .jump { background: var(--accent); color: var(--void); font-weight: 700; font-size: 14px; letter-spacing: 0.12em; padding: 14px 22px; }
+  .jump:hover { background: #6fe0cf; }
+  .help { position: absolute; right: 0; bottom: 0; padding-block: 28px; padding-bottom: max(28px, env(safe-area-inset-bottom, 0px)); text-align: right; line-height: 1.9; pointer-events: none; }
+  .fail { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px; font-size: 15px; line-height: 1.6; }
+
+  .flash { position: fixed; inset: 0; background: var(--void); opacity: 0; pointer-events: none; z-index: 20; transition: opacity 0.4s; }
+  .flash canvas { display: block; width: 100%; height: 100%; }
+  .flash.on { opacity: 1; }
+  .arrival { position: fixed; inset: 0; z-index: 10; overflow-y: auto; background: var(--void); padding-block: max(28px, env(safe-area-inset-top, 0px)) max(28px, env(safe-area-inset-bottom, 0px)); }
+  .arrival .inner { max-width: 980px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+  .arrival .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .back { border: 1px solid var(--rule); padding: 12px 18px; font-size: 13px; letter-spacing: 0.1em; }
+  .back:hover { border-color: var(--ink); }
+  .arrival h2 { margin: 0; font-family: var(--display); font-weight: 800; font-size: clamp(64px, 13vw, 168px); line-height: 0.84; text-transform: uppercase; text-wrap: balance; }
+  .arrival .lede { margin: 0; font-size: 18px; line-height: 1.5; max-width: 52ch; }
+  .arrival .big { display: block; width: 100%; height: auto; aspect-ratio: 16 / 10; object-fit: cover; object-position: top; border: 1px solid var(--rule); background: #0c0c10; }
+  .cols { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 40px; border-top: 2px solid var(--accent); padding-top: 26px; }
+  .cols ol { margin: 10px 0 0; padding: 0; list-style: none; counter-reset: h; }
+  .cols li { counter-increment: h; display: grid; grid-template-columns: 2.4rem 1fr; padding: 13px 0; border-bottom: 1px solid var(--rule); font-size: 15px; line-height: 1.5; }
+  .cols li::before { content: counter(h, decimal-leading-zero); color: var(--accent); font-size: 12px; padding-top: 3px; }
+  .crew { display: flex; flex-direction: column; gap: 18px; }
+  .crew .name { font-family: var(--display); font-weight: 700; font-size: 34px; line-height: 1; text-transform: uppercase; margin-top: 8px; }
+  .crew a { color: var(--accent); font-size: 14px; letter-spacing: 0.06em; text-underline-offset: 4px; display: inline-block; padding: 6px 0; }
+  .crew .links { display: flex; gap: 18px; flex-wrap: wrap; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .chips span { border: 1px solid var(--rule); padding: 6px 10px; font-size: 12px; letter-spacing: 0.08em; }
+  .open { display: inline-block; background: var(--accent); color: var(--void); font-weight: 700; font-size: 14px; letter-spacing: 0.12em; padding: 16px 24px; text-decoration: none; width: fit-content; }
+
+  @media (max-width: 760px) {
+    .brand p, .help { display: none; }
+    .brand h1 { font-size: 36px; }
+    .views { top: 98px; right: auto; left: 0; padding-block: 0; }
+    .views button { padding: 9px 12px; font-size: 11px; }
+    .gallery { inset: 150px 0 0; padding-top: 24px; }
+    body[data-view="gallery"] .space::before { height: 150px; }
+    .gallery ol { grid-template-columns: 1fr; gap: 34px; }
+    .work .side { align-items: flex-start; flex-direction: row; gap: 16px; }
+    .dest { width: 100%; }
+    .card { flex-direction: row; }
+    .shot { width: 36%; aspect-ratio: auto; flex: none; }
+    .shot .bar { display: none; }
+    .card .text { padding: 12px 14px 14px; gap: 8px; min-width: 0; }
+    .card h2 { font-size: 28px; }
+    .card p { font-size: 12.5px; }
+    .jump { padding: 11px 16px; font-size: 13px; }
+    .cols { grid-template-columns: 1fr; gap: 28px; }
+    .tag.body { display: none; }
+    .tag.project { font-size: 11px; padding: 6px 9px 6px 8px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .flash, .shot img { transition: none; } }
+
+  /* clean pass: quieter chrome, one accent, rounded controls */
+  .brand h1 { font-weight: 700; font-size: clamp(26px, 2.4vw, 36px); line-height: 1; margin-top: 10px; }
+  .brand p { display: none; }
+  .views { gap: 0; }
+  .views button { padding: 9px 16px; background: rgb(13 13 13 / 0.6); }
+  .views button:first-child { border-radius: 999px 0 0 999px; border-right: 0; }
+  .views button:last-child { border-radius: 0 999px 999px 0; }
+  .gallery { inset: 104px 0 0; }
+  body[data-view="gallery"] .space::before { height: 104px; }
+  .tag.body { color: rgb(242 242 242 / 0.34); font-size: 10px; }
+  .tag.project { border-radius: 999px; padding: 6px 12px 6px 10px; font-size: 11px; background: rgb(13 13 13 / 0.6); border-color: rgb(242 242 242 / 0.16); }
+  .tag.project::before { width: 6px; height: 6px; box-shadow: none; }
+  .dest { width: min(340px, 100%); }
+  .card { border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; background: rgb(21 21 21 / 0.86); }
+  .card .text { padding: 16px 18px 18px; gap: 9px; }
+  .card h2 { font-size: 30px; line-height: 1; }
+  .card p { font-size: 13px; }
+  .jump, .work .go, .open { border-radius: 999px; }
+  .jump { font-size: 12px; padding: 11px 18px; }
+  .help { opacity: 0.6; }
+  .work .frame { border-radius: 10px; }
+  .work .num { left: 10px; top: 10px; border-radius: 999px; background: rgb(13 13 13 / 0.78); color: var(--ink); font-weight: 400; backdrop-filter: blur(4px); }
+  .cols { border-top: 1px solid var(--rule); }
+  .chips { margin-top: 0; gap: 6px; }
+  .chips span { border-radius: 999px; padding: 4px 10px; font-size: 11px; color: var(--dim); }
+  .work .chips { margin-top: 12px; }
+  .card .row .label { font-size: 11px; letter-spacing: 0.06em; }
+  .work .stars { position: absolute; right: 10px; top: 10px; border-radius: 999px; background: #ffb000; color: var(--void); font-weight: 700; font-size: 12px; letter-spacing: 0.06em; padding: 7px 11px; }
+  .work .meta { flex-direction: column; flex-wrap: nowrap; gap: 16px; }
+  .work .side { flex-direction: row; align-items: center; gap: 20px; }
+  .work h3 { font-weight: 700; font-size: clamp(28px, 2.6vw, 40px); line-height: 1; }
+  .work .go { font-size: 12px; padding: 11px 18px; }
+  @media (max-width: 759px) {
+    .views { top: 90px; }
+    .gallery { inset: 142px 0 0; }
+    body[data-view="gallery"] .space::before { height: 142px; }
+  }
+</style>
+</head>
+<body>
+<div class="space">
+  <div id="scene"></div>
+  <div id="tags"></div>
+
+  <div class="brand gutter">
+    <span class="label"><span class="dot"></span>Acelera Dev · <span id="viewName">sistema solar</span></span>
+    <h1>Acelera Hub</h1>
+    <p id="hint">Os oito planetas, cada um na sua órbita. Os projetos da comunidade são as estrelas que giram em volta de alguns deles.</p>
+  </div>
+
+  <div class="views gutter" role="group" aria-label="Forma de exposição">
+    <button type="button" data-view="space" aria-pressed="true">Sistema solar</button>
+    <button type="button" data-view="gallery" aria-pressed="false">Galeria</button>
+  </div>
+
+  <section class="gallery gutter" id="gallery" aria-label="Galeria de projetos" hidden>
+    <div class="inner"><ol id="grid"></ol></div>
+  </section>
+
+  <div class="dest gutter">
+    <div class="card" aria-live="polite">
+      <div class="shot">
+        <img id="destShot" alt="" width="1600" height="1000">
+        <div class="bar"><i></i><i></i><i></i><span id="destUrl"></span></div>
+      </div>
+      <div class="text">
+        <span class="label" id="destLabel"></span>
+        <h2 id="destName"></h2>
+        <p id="destTag"></p>
+        <div class="chips" id="destStack"></div>
+        <div class="row">
+          <span class="label" id="destWho"></span>
+          <button class="jump" id="jump" type="button">SALTAR ↵</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="help gutter label">arraste para girar · role para aproximar</div>
+</div>
+
+<div class="flash" id="flash"><canvas id="warp"></canvas></div>
+<div class="arrival gutter" id="arrival" hidden>
+  <div class="inner">
+    <div class="top">
+      <span class="label" id="arrLabel"></span>
+      <button class="back" id="back" type="button">← VOLTAR AO ESPAÇO · ESC</button>
+    </div>
+    <h2 id="arrName" tabindex="-1"></h2>
+    <p class="lede" id="arrTag"></p>
+    <a class="open" id="arrOpen" target="_blank" rel="noopener noreferrer">ABRIR O PROJETO ↗</a>
+    <img class="big" id="arrShot" alt="" width="1600" height="1000">
+    <div class="cols">
+      <div><span class="label">Destaques</span><ol id="arrHigh"></ol></div>
+      <div class="crew">
+        <div><span class="label">Piloto</span><div class="name" id="arrWho"></div><div class="links" id="arrLinks"></div></div>
+        <div><span class="label">Stack</span><div class="chips" id="arrStack"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+  // host: the planet each project orbits. shot: the site screenshot published next to this page.
+  const projects = [
+    { name: "Acelera Commits", who: "Luanderson", tag: "Um jogo para aprender git de verdade, direto no navegador.", url: "https://acelera-commits.luanderson.dev.br", shot: "covers/acelera-commits.jpg", stack: ["Next.js"], host: "Terra",
+      high: ["Missões com git de verdade: commit, branch, merge, conflitos e rebase", "Grafo de commits que se redesenha a cada comando", "XP, níveis e ranking semanal da tripulação"] },
+    { name: "Acelera Globe", who: "Guilherme Pessoa", tag: "Um globo interativo com os devs da Acelera Dev espalhados pelo mundo.", url: "https://resultados.aceleradev.com.br", shot: "covers/acelera-globe.jpg", stack: ["TypeScript", "React", "Mapbox GL", "Java", "Quarkus"], host: "Júpiter", stars: 6, repo: "https://github.com/guithepc/acelera-results",
+      high: ["Globo 3D navegável, com zoom e rotação", "Um avatar por dev, no lugar onde a pessoa está", "Filtro por área de atuação"] },
+    { name: "Instablock", who: "Lucas Marujo", tag: "Bloqueador de apps que faz o impulso esperar 30 minutos.", url: "https://acelera.marujo.dev", shot: "covers/instablock.jpg", stack: ["Android", "iOS"], host: "Marte",
+      high: ["Bloqueio de apps e sites que continua valendo com o app fechado", "Modo restrito: tirar um app da lista pede 30 minutos de espera", "Tudo no aparelho, com conta opcional e sem anúncio"] },
+    { name: "Money Flow", who: "Guilherme Pessoa", tag: "Mande um áudio no Telegram e o gasto aparece no seu painel em 5 segundos.", url: "https://landing-page-money-flow.vercel.app/", shot: "covers/money-flow.jpg", stack: ["Java", "Spring Boot", "React", "PostgreSQL", "Telegram"], host: "Saturno", stars: 53, repo: "https://github.com/guithepc/money-flow",
+      high: ["O áudio vira valor, categoria e conta, sem digitar nada", "Painel web com tudo o que foi anotado", "Sem planilha, sem app novo e sem senha de banco"] },
+    { name: "The One Digital", who: "Guilherme Pessoa", tag: "Sites, sistemas e automações para negócios locais.", url: "https://theonedigital.vercel.app", shot: "covers/the-one-digital.jpg", stack: ["Vercel"], host: "Netuno",
+      high: ["Portfólio com os trabalhos entregues", "Disponível em português, inglês, holandês e francês", "Sites, sistemas sob medida e automações"] },
+    { name: "Octo", who: "Lucas Marujo", tag: "Um ambiente para rodar e orquestrar vários agentes de código numa janela só.", url: "https://octo.marujo.dev/", shot: "covers/octo.jpg", stack: ["Rust", "TypeScript", "JavaScript"], host: "Urano", stars: 28, repo: "https://github.com/lucasmarujo/octo",
+      high: ["Claude Code, Codex, Cursor e mais sete agentes lado a lado, em todos os projetos", "Status exato de cada agente: trabalhando, esperando você ou pronto", "Cada agente no seu próprio worktree e branch do git"] },
+    { name: "Screen", who: "Willian Figueiredo", tag: "Transforma a call do Discord numa sala com tela, câmera e palco, direto no navegador.", url: "http://screen.willradoux.com/sobre", shot: "covers/screen.jpg", stack: ["TypeScript", "React", "Node.js", "LiveKit", "MongoDB"], host: "Vênus", stars: 0, repo: "https://github.com/willradoux/Screen",
+      high: ["Transmissão de tela, câmera e microfone para o servidor da Acelera Dev", "O bot manda o botão da sala quando alguém entra no canal de voz", "Hospeda as reuniões mensais do servidor, no lugar do Meet"] },
+    { name: "XanaScript", who: "Flavio Luiz", tag: "Uma linguagem de programação com sintaxe em português, que compila para JavaScript e WebAssembly.", url: "https://xanascript.xyz/", shot: "covers/xanascript.jpg", stack: ["JavaScript", "Node.js", "WebAssembly"], host: "Mercúrio", stars: 14, repo: "https://github.com/xanascr/xs",
+      high: ["Palavras-chave e erros de compilação em português", "Compilador otimizante, com saída para JavaScript ou WebAssembly", "ORM embutido: declare um DB e ganhe o CRUD pronto"] },
+    { name: "Acelera Lê!", who: "Pablo Soares", tag: "A estante de leitura da Acelera Dev: roadmaps de livros, do iniciante ao avançado.", url: "https://acelera-le.vercel.app/", shot: "covers/acelera-le.jpg", stack: ["JavaScript", "HTML", "CSS"], host: "Júpiter", stars: 0, repo: "https://github.com/pbosoares/acelera-le",
+      high: ["Nove estantes por tema, de Java e Python a IA, DevOps e Carreira", "Até 7 livros por estante, em ordem do iniciante ao avançado", "Busca por título ou autor, filtros de português e gratuito, e marcação do que já foi lido"] },
+  ];
+  // Contacts are the ones each author lists on their own GitHub profile or project site.
+  const crew = {
+    "Guilherme Pessoa": [["GitHub", "https://github.com/guithepc"], ["LinkedIn", "https://www.linkedin.com/in/guilhermep-c/"], ["Site", "https://theonedigital.vercel.app"]],
+    "Lucas Marujo": [["GitHub", "https://github.com/lucasmarujo"], ["LinkedIn", "https://www.linkedin.com/in/lucas-amadeu/"], ["Instagram", "https://www.instagram.com/lucas.marujo/"], ["Site", "https://marujo.dev"]],
+    "Luanderson": [["GitHub", "https://github.com/luanderson-dev"], ["LinkedIn", "https://www.linkedin.com/in/luanderson-dev"], ["Site", "https://luanderson.dev.br"]],
+    "Willian Figueiredo": [["GitHub", "https://github.com/willradoux"], ["LinkedIn", "https://www.linkedin.com/in/willianfigueiredodev/"], ["Instagram", "https://www.instagram.com/willianradoux/"], ["Site", "https://willradoux.com"]],
+    "Flavio Luiz": [["GitHub", "https://github.com/flazo0"], ["LinkedIn", "https://www.linkedin.com/in/flazo0/"], ["Instagram", "https://www.instagram.com/flazo0/"], ["YouTube", "https://www.youtube.com/@flazo0"], ["Site", "https://esc-software.com/"]],
+    "Pablo Soares": [["GitHub", "https://github.com/pbosoares"], ["LinkedIn", "https://www.linkedin.com/in/pablodacostasoares"]],
+  };
+  // GitHub stars were read on 2026-11-22. Most starred first, everywhere: gallery, numbering and arrow keys.
+  projects.sort((a, b) => (b.stars || 0) - (a.stars || 0));
+  for (const p of projects) p.links = [...(p.repo ? [["Repositório", p.repo]] : []), ...crew[p.who]];
+  // at is where the planet starts, in degrees around the Sun as seen from the opening camera (0 = right, 90 = toward the viewer).
+  // radius and distance are compressed so everything fits on screen. tilt and node are exaggerated on purpose. axis is the real axial tilt.
+  const planetData = [
+    { name: "Mercúrio", at: 15, r: 0.75, d: 9.5, period: 24, tilt: 14, node: 40, axis: 0, kind: "rock", colors: ["#8c8680", "#5e5a56", "#b3aca4"] },
+    { name: "Vênus", at: -49, r: 1.25, d: 14, period: 38, tilt: -9, node: 130, axis: 3, kind: "bands", colors: ["#d9b77a", "#c79a55", "#ead3a0", "#b88a4a"] },
+    { name: "Terra", at: 175, r: 1.4, d: 19.5, period: 52, tilt: 5, node: 220, axis: 23, kind: "earth", colors: [] },
+    { name: "Marte", at: 129, r: 1, d: 25, period: 70, tilt: 17, node: 300, axis: 25, kind: "rock", colors: ["#b5512e", "#7d3319", "#d98a5c"] },
+    { name: "Júpiter", at: 52, r: 4.3, d: 37, period: 120, tilt: -7, node: 80, axis: 3, kind: "bands", colors: ["#c9a57a", "#a97a50", "#e6d3b3", "#8f5f3c", "#d9b991", "#b5764a"] },
+    { name: "Saturno", at: -154, r: 3.5, d: 51, period: 170, tilt: 11, node: 170, axis: 26.7, kind: "bands", colors: ["#dcc694", "#cdb47c", "#e9dbb2", "#c4a86c", "#d6bf8a"], ring: true },
+    { name: "Urano", at: 8, r: 2.3, d: 63, period: 230, tilt: -15, node: 260, axis: 82, kind: "bands", colors: ["#9fd6dc", "#8cc9d0", "#b4e2e6"] },
+    { name: "Netuno", at: -58, r: 2.15, d: 73, period: 300, tilt: 21, node: 20, axis: 28, kind: "bands", colors: ["#3f66c9", "#2f4fa8", "#5c84e0", "#27408a"] },
+  ];
+
+  const $ = (id) => document.getElementById(id);
+  const el = (tag, props = {}, kids = []) => {
+    const node = Object.assign(document.createElement(tag), props);
+    node.append(...kids);
+    return node;
+  };
+  const pad = (n) => String(n + 1).padStart(2, "0");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const state = { target: 0, arrived: false, flyUntil: 0, view: "space" };
+
+  if (!window.THREE || !THREE.OrbitControls) {
+    $("scene").append(el("div", { className: "fail", textContent: "O 3D não carregou neste navegador. Recarregue a página para tentar de novo." }));
+  } else {
+    start();
+  }
+
+  function start() {
+    const host = $("scene");
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    host.append(renderer.domElement);
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0d0d0d);
+    const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 4000);
+    camera.position.set(0, 29.5, 73.5);
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.07;
+    controls.enablePan = false;
+    controls.rotateSpeed = 0.7;
+    controls.zoomSpeed = 0.8;
+    controls.minDistance = 6;
+    controls.maxDistance = 280;
+
+    const rand = (a, b) => a + Math.random() * (b - a);
+    const gauss = () => (Math.random() + Math.random() + Math.random() + Math.random() - 2) / 2;
+    const rad = (deg) => (deg * Math.PI) / 180;
+
+    function canvasTexture(w, h, draw) {
+      const c = document.createElement("canvas");
+      c.width = w;
+      c.height = h;
+      draw(c.getContext("2d"), w, h);
+      const texture = new THREE.CanvasTexture(c);
+      texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      return texture;
+    }
+    const glowTexture = canvasTexture(128, 128, (g, w) => {
+      const grad = g.createRadialGradient(w / 2, w / 2, 0, w / 2, w / 2, w / 2);
+      grad.addColorStop(0, "rgba(255,255,255,1)");
+      grad.addColorStop(0.25, "rgba(255,255,255,0.55)");
+      grad.addColorStop(1, "rgba(255,255,255,0)");
+      g.fillStyle = grad;
+      g.fillRect(0, 0, w, w);
+    });
+    function glow(color, size, opacity = 1) {
+      const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture, color, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false }));
+      s.scale.set(size, size, 1);
+      return s;
+    }
+    function surface(kind, colors) {
+      return canvasTexture(1024, 512, (g, w, h) => {
+        if (kind === "bands") {
+          let y = 0;
+          while (y < h) {
+            const band = rand(10, 46);
+            g.fillStyle = colors[Math.floor(Math.random() * colors.length)];
+            g.fillRect(0, y, w, band + 1);
+            y += band;
+          }
+          for (let i = 0; i < 420; i++) {
+            g.fillStyle = `rgba(${Math.random() < 0.5 ? "255,255,255" : "0,0,0"},${rand(0.02, 0.07)})`;
+            g.fillRect(rand(-100, w), rand(0, h), rand(60, 320), rand(1, 6));
+          }
+        } else if (kind === "earth") {
+          g.fillStyle = "#1d4e9e";
+          g.fillRect(0, 0, w, h);
+          for (let i = 0; i < 70; i++) {
+            g.fillStyle = Math.random() < 0.7 ? "#3d7a3a" : "#8a7a4a";
+            g.beginPath();
+            g.ellipse(rand(0, w), rand(h * 0.15, h * 0.85), rand(20, 90), rand(14, 50), rand(0, 3), 0, 7);
+            g.fill();
+          }
+          g.fillStyle = "#eef3f7";
+          g.fillRect(0, 0, w, 26);
+          g.fillRect(0, h - 30, w, 30);
+          for (let i = 0; i < 110; i++) {
+            g.fillStyle = `rgba(255,255,255,${rand(0.15, 0.5)})`;
+            g.beginPath();
+            g.ellipse(rand(0, w), rand(0, h), rand(28, 120), rand(3, 12), 0, 0, 7);
+            g.fill();
+          }
+        } else {
+          g.fillStyle = colors[0];
+          g.fillRect(0, 0, w, h);
+          for (let i = 0; i < 1100; i++) {
+            g.fillStyle = Math.random() < 0.6 ? colors[1] : colors[2];
+            g.globalAlpha = rand(0.1, 0.5);
+            g.beginPath();
+            g.arc(rand(0, w), rand(0, h), rand(2, 22), 0, 7);
+            g.fill();
+          }
+          g.globalAlpha = 1;
+        }
+      });
+    }
+    function circleLine(radius, color, opacity) {
+      const pts = [];
+      for (let i = 0; i <= 200; i++) pts.push(new THREE.Vector3(Math.cos((i / 200) * Math.PI * 2) * radius, 0, Math.sin((i / 200) * Math.PI * 2) * radius));
+      return new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color, transparent: true, opacity }));
+    }
+
+    // the Milky Way as seen from inside: stars everywhere, denser along the galactic plane
+    (function sky() {
+      const n = 11000;
+      const pos = new Float32Array(n * 3);
+      const col = new Float32Array(n * 3);
+      const plane = new THREE.Euler(rad(62), 0, rad(24));
+      const v = new THREE.Vector3();
+      for (let i = 0; i < n; i++) {
+        const a = rand(0, Math.PI * 2);
+        const inBand = i < n * 0.7;
+        const lat = inBand ? gauss() * 0.2 : Math.asin(rand(-1, 1));
+        v.set(Math.cos(a) * Math.cos(lat), Math.sin(lat), Math.sin(a) * Math.cos(lat)).multiplyScalar(rand(900, 1400)).applyEuler(plane);
+        pos.set([v.x, v.y, v.z], i * 3);
+        const warm = Math.random() < 0.3;
+        const k = rand(0.35, 1);
+        col.set(warm ? [k, k * 0.86, k * 0.66] : [k * 0.86, k * 0.91, k], i * 3);
+      }
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+      geo.setAttribute("color", new THREE.BufferAttribute(col, 3));
+      scene.add(new THREE.Points(geo, new THREE.PointsMaterial({ size: 2.2, sizeAttenuation: false, vertexColors: true, transparent: true, opacity: 0.9, depthWrite: false })));
+    })();
+
+    const tags = [];
+    function addTag(object, text, index) {
+      const isProject = index !== undefined;
+      const node = isProject ? el("button", { type: "button", className: "tag project", textContent: text }) : el("span", { className: "tag body", textContent: text });
+      if (isProject) node.addEventListener("click", () => (state.target === index ? jump() : select(index)));
+      $("tags").append(node);
+      tags.push({ object, node, index });
+    }
+
+    const picks = [];
+    const anchors = [];
+    const spinners = [];
+    const orbiters = [];
+    scene.add(new THREE.AmbientLight(0xffffff, 0.3));
+    scene.add(new THREE.PointLight(0xfff0d0, 1.15, 0, 0));
+
+    // ----- the Sun: boiling surface, darker limb, soft corona -----
+    const noise = `
+      float hash(vec3 p) { p = fract(p * 0.3183099 + 0.1); p *= 17.0; return fract(p.x * p.y * p.z * (p.x + p.y + p.z)); }
+      float vnoise(vec3 x) {
+        vec3 i = floor(x); vec3 f = fract(x); f = f * f * (3.0 - 2.0 * f);
+        return mix(mix(mix(hash(i), hash(i + vec3(1,0,0)), f.x), mix(hash(i + vec3(0,1,0)), hash(i + vec3(1,1,0)), f.x), f.y),
+                   mix(mix(hash(i + vec3(0,0,1)), hash(i + vec3(1,0,1)), f.x), mix(hash(i + vec3(0,1,1)), hash(i + vec3(1,1,1)), f.x), f.y), f.z);
+      }
+      float fbm(vec3 p) { float a = 0.5; float s = 0.0; for (int i = 0; i < 5; i++) { s += a * vnoise(p); p = p * 2.03 + 7.1; a *= 0.5; } return s; }
+    `;
+    const sunUniforms = { time: { value: 0 } };
+    const sun = new THREE.Mesh(new THREE.SphereGeometry(5, 96, 64), new THREE.ShaderMaterial({
+      uniforms: sunUniforms,
+      vertexShader: `
+        varying vec3 vPos; varying vec3 vNormal; varying vec3 vView;
+        void main() {
+          vPos = position;
+          vec4 mv = modelViewMatrix * vec4(position, 1.0);
+          vNormal = normalize(normalMatrix * normal);
+          vView = normalize(-mv.xyz);
+          gl_Position = projectionMatrix * mv;
+        }`,
+      fragmentShader: `
+        uniform float time; varying vec3 vPos; varying vec3 vNormal; varying vec3 vView;
+        ${noise}
+        void main() {
+          vec3 p = normalize(vPos);
+          float flow = fbm(p * 2.2 + vec3(0.0, time * 0.035, time * 0.02));
+          float cells = fbm(p * 9.0 + flow * 2.4 + time * 0.07);
+          float fine = fbm(p * 26.0 - time * 0.12);
+          float heat = clamp(0.55 * cells + 0.3 * flow + 0.22 * fine, 0.0, 1.0);
+          float spots = smoothstep(0.34, 0.24, fbm(p * 3.1 + 11.0 + time * 0.012));
+          vec3 deep = vec3(0.78, 0.2, 0.01);
+          vec3 mid = vec3(1.0, 0.56, 0.05);
+          vec3 hot = vec3(1.0, 0.93, 0.66);
+          vec3 color = mix(deep, mid, smoothstep(0.28, 0.56, heat));
+          color = mix(color, hot, smoothstep(0.56, 0.82, heat));
+          color *= 1.0 - spots * 0.28;
+          float facing = clamp(dot(vNormal, vView), 0.0, 1.0);
+          color *= mix(0.5, 1.12, pow(facing, 0.55));
+          color += vec3(1.0, 0.42, 0.05) * pow(1.0 - facing, 3.0) * 0.55;
+          gl_FragColor = vec4(color, 1.0);
+        }`,
+    }));
+    const corona = new THREE.Mesh(new THREE.SphereGeometry(5, 64, 48), new THREE.ShaderMaterial({
+      uniforms: sunUniforms,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      side: THREE.BackSide,
+      vertexShader: `
+        varying vec3 vNormal; varying vec3 vView; varying vec3 vPos;
+        void main() {
+          vPos = position;
+          vec4 mv = modelViewMatrix * vec4(position * 1.55, 1.0);
+          vNormal = normalize(normalMatrix * normal);
+          vView = normalize(-mv.xyz);
+          gl_Position = projectionMatrix * mv;
+        }`,
+      fragmentShader: `
+        uniform float time; varying vec3 vNormal; varying vec3 vView; varying vec3 vPos;
+        ${noise}
+        void main() {
+          float rim = clamp(dot(-vNormal, vView), 0.0, 1.0);
+          float rays = 0.65 + 0.7 * fbm(normalize(vPos) * 5.0 + time * 0.05);
+          float a = pow(rim, 2.6) * rays;
+          gl_FragColor = vec4(vec3(1.0, 0.62, 0.16) * a * 1.5, a);
+        }`,
+    }));
+    scene.add(sun, corona, glow(0xffa21a, 20, 0.34), glow(0xff6a00, 34, 0.07));
+    spinners.push({ mesh: sun, speed: 0.02 });
+    addTag(sun, "Sol");
+
+    // Saturn's rings, from the inside out: D, C, B (brightest), the Cassini division, A with the Encke gap, F
+    const ringTexture = canvasTexture(2048, 4, (g, w, h) => {
+      const bands = [
+        [0.0, 0.06, 0.05, "198,180,140"], [0.06, 0.26, 0.28, "170,150,118"], [0.26, 0.56, 0.95, "232,212,168"],
+        [0.56, 0.615, 0.04, "120,105,85"], [0.615, 0.88, 0.72, "214,196,158"], [0.88, 0.895, 0.03, "120,105,85"],
+        [0.895, 0.93, 0.6, "206,190,152"], [0.93, 0.97, 0.0, "0,0,0"], [0.97, 1.0, 0.22, "210,196,166"],
+      ];
+      for (let x = 0; x < w; x++) {
+        const t = x / w;
+        const band = bands.find((b) => t >= b[0] && t < b[1]) || bands[bands.length - 1];
+        const ripple = 0.72 + 0.28 * Math.abs(Math.sin(x * 0.9) * Math.sin(x * 0.173) + Math.sin(x * 0.047) * 0.5);
+        g.fillStyle = `rgba(${band[3]},${Math.min(1, band[2] * ripple)})`;
+        g.fillRect(x, 0, 1, h);
+      }
+    });
+
+    function startAngle(plane, degrees) {
+      const local = new THREE.Vector3(Math.cos(rad(degrees)), 0, Math.sin(rad(degrees))).applyQuaternion(plane.quaternion.clone().invert());
+      return Math.atan2(local.z, local.x);
+    }
+    // Earth gets a real surface map, a cloud layer that drifts on its own and a thin blue atmosphere. The drawn texture stays until the files load.
+    const loader = new THREE.TextureLoader();
+    function dressEarth(mesh, axis, r) {
+      loader.load("tex/earth.jpg", (map) => {
+        map.anisotropy = renderer.capabilities.getMaxAnisotropy();
+        mesh.material.map = map;
+        mesh.material.needsUpdate = true;
+      });
+      loader.load("tex/earth-clouds.png", (map) => {
+        const clouds = new THREE.Mesh(new THREE.SphereGeometry(r * 1.014, 64, 40), new THREE.MeshStandardMaterial({ map, transparent: true, opacity: 0.9, depthWrite: false, roughness: 1 }));
+        axis.add(clouds);
+        spinners.push({ mesh: clouds, speed: 0.31 });
+      });
+      axis.add(new THREE.Mesh(new THREE.SphereGeometry(r * 1.04, 48, 32), new THREE.MeshBasicMaterial({ color: 0x5aa9ff, transparent: true, opacity: 0.13, side: THREE.BackSide, depthWrite: false })));
+    }
+    const planets = {};
+    planetData.forEach((p) => {
+      const plane = new THREE.Group();
+      plane.rotation.set(rad(p.tilt), rad(p.node), 0, "YXZ");
+      scene.add(plane);
+      plane.add(circleLine(p.d, 0xf2f2f2, 0.16));
+      const holder = new THREE.Group();
+      plane.add(holder);
+      const axis = new THREE.Group();
+      axis.rotation.z = rad(p.axis);
+      holder.add(axis);
+      const mesh = new THREE.Mesh(new THREE.SphereGeometry(p.r, 64, 40), new THREE.MeshStandardMaterial({ map: surface(p.kind, p.colors), roughness: 1, metalness: 0 }));
+      axis.add(mesh);
+      if (p.kind === "earth") dressEarth(mesh, axis, p.r);
+      if (p.ring) {
+        const inner = p.r * 1.24;
+        const outer = p.r * 2.32;
+        const geo = new THREE.RingGeometry(inner, outer, 180, 1);
+        const uv = geo.attributes.uv;
+        const at = geo.attributes.position;
+        for (let i = 0; i < uv.count; i++) uv.setXY(i, (Math.hypot(at.getX(i), at.getY(i)) - inner) / (outer - inner), 0.5);
+        const ring = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: ringTexture, side: THREE.DoubleSide, transparent: true, depthWrite: false }));
+        ring.rotation.x = Math.PI / 2;
+        axis.add(ring);
+      }
+      orbiters.push({ holder, d: p.d, speed: (Math.PI * 2) / p.period, angle: startAngle(plane, p.at) });
+      spinners.push({ mesh, speed: 0.25 });
+      planets[p.name] = { holder, r: p.r, ring: p.ring };
+      addTag(mesh, p.name);
+    });
+
+    const guests = {};
+    projects.forEach((project, index) => {
+      const hostPlanet = planets[project.host];
+      const lane = guests[project.host] = (guests[project.host] ?? -1) + 1;
+      const plane = new THREE.Group();
+      plane.rotation.set(rad(rand(30, 70)), rad(rand(0, 360)), 0, "YXZ");
+      hostPlanet.holder.add(plane);
+      const d = hostPlanet.r * (hostPlanet.ring ? 2.75 : 1) + 1.6 + (index % 2) * 0.5 + lane * 1.5;
+      plane.add(circleLine(d, 0xffb000, 0.55));
+      const holder = new THREE.Group();
+      plane.add(holder);
+      const star = new THREE.Mesh(new THREE.SphereGeometry(0.36, 20, 14), new THREE.MeshBasicMaterial({ color: 0xfff1cc }));
+      holder.add(star, glow(0xffb000, 3.4, 0.95));
+      const hit = new THREE.Mesh(new THREE.SphereGeometry(1.3, 10, 8), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }));
+      hit.userData.project = index;
+      holder.add(hit);
+      orbiters.push({ holder, d, speed: (Math.PI * 2) / rand(16, 28), angle: rand(0, Math.PI * 2) });
+      picks.push(hit);
+      anchors[index] = { object: star, distance: hostPlanet.r * 4.2 + 11 };
+      addTag(star, project.name, index);
+    });
+
+    // ----- life in the background: far galaxies, shooting stars, a small ship now and then -----
+    const galaxyShapes = [
+      (g, s) => {
+        for (let i = 0; i < 1500; i++) {
+          const r = Math.pow(Math.random(), 0.7) * s * 0.46;
+          const a = (i % 2) * Math.PI + r * 0.055 + gauss() * 0.45;
+          g.fillStyle = `rgba(${r < s * 0.12 ? "255,236,200" : "190,210,255"},${rand(0.15, 0.7)})`;
+          g.fillRect(s / 2 + Math.cos(a) * r, s / 2 + Math.sin(a) * r * 0.62, 1.4, 1.4);
+        }
+      },
+      (g, s) => {
+        for (let i = 0; i < 1100; i++) {
+          g.fillStyle = `rgba(255,226,196,${rand(0.1, 0.55)})`;
+          g.fillRect(s / 2 + gauss() * s * 0.36, s / 2 + gauss() * s * 0.045, 1.3, 1.3);
+        }
+      },
+      (g, s) => {
+        for (let i = 0; i < 1000; i++) {
+          g.fillStyle = `rgba(255,214,226,${rand(0.08, 0.5)})`;
+          g.fillRect(s / 2 + gauss() * s * 0.2, s / 2 + gauss() * s * 0.15, 1.3, 1.3);
+        }
+      },
+    ];
+    const galaxies = [];
+    for (let i = 0; i < 7; i++) {
+      const map = canvasTexture(256, 256, (g, w) => {
+        const core = g.createRadialGradient(w / 2, w / 2, 0, w / 2, w / 2, w * 0.2);
+        core.addColorStop(0, "rgba(255,240,214,0.9)");
+        core.addColorStop(1, "rgba(255,240,214,0)");
+        g.fillStyle = core;
+        g.fillRect(0, 0, w, w);
+        galaxyShapes[i % galaxyShapes.length](g, w);
+      });
+      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map, transparent: true, opacity: rand(0.45, 0.8), blending: THREE.AdditiveBlending, depthWrite: false, rotation: rand(0, 6.28) }));
+      const a = rand(0, Math.PI * 2);
+      const lat = rand(-1, 1);
+      sprite.position.set(Math.cos(a) * Math.cos(lat), Math.sin(lat), Math.sin(a) * Math.cos(lat)).multiplyScalar(820);
+      const size = rand(70, 150);
+      sprite.scale.set(size, size, 1);
+      scene.add(sprite);
+      galaxies.push({ sprite, spin: rand(-0.012, 0.012) });
+    }
+
+    const meteors = Array.from({ length: 3 }, () => {
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(6), 3));
+      geo.setAttribute("color", new THREE.BufferAttribute(new Float32Array([1, 1, 1, 0, 0, 0]), 3));
+      const line = new THREE.Line(geo, new THREE.LineBasicMaterial({ vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+      line.visible = false;
+      line.frustumCulled = false;
+      scene.add(line);
+      return { line, from: new THREE.Vector3(), dir: new THREE.Vector3(), age: 0, life: 0 };
+    });
+    let nextMeteor = 2.5;
+
+    const ship = new THREE.Group();
+    const hull = new THREE.Mesh(new THREE.SphereGeometry(0.55, 24, 12), new THREE.MeshStandardMaterial({ color: 0x9aa3ad, roughness: 0.35, metalness: 0.8 }));
+    hull.scale.y = 0.24;
+    const dome = new THREE.Mesh(new THREE.SphereGeometry(0.24, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x9ff7d2 }));
+    dome.position.y = 0.06;
+    const beam = glow(0x66ffb0, 1.9, 0.75);
+    beam.position.y = -0.14;
+    ship.add(hull, dome, beam);
+    ship.visible = false;
+    scene.add(ship);
+    const flight = { from: new THREE.Vector3(), to: new THREE.Vector3(), age: 0, life: 0 };
+    let nextShip = 9;
+
+    function ambient(dt, elapsed) {
+      for (const g of galaxies) g.sprite.material.rotation += g.spin * dt;
+
+      nextMeteor -= dt;
+      if (nextMeteor <= 0) {
+        const m = meteors.find((meteor) => !meteor.line.visible);
+        if (m) {
+          const a = rand(0, Math.PI * 2);
+          const lat = rand(-0.9, 0.9);
+          m.from.set(Math.cos(a) * Math.cos(lat), Math.sin(lat), Math.sin(a) * Math.cos(lat)).multiplyScalar(520);
+          m.dir.set(rand(-1, 1), rand(-1, 0.2), rand(-1, 1)).normalize();
+          m.dir.addScaledVector(m.from, -m.dir.dot(m.from) / m.from.lengthSq()).normalize();
+          m.age = 0;
+          m.life = rand(0.7, 1.3);
+          m.line.visible = true;
+        }
+        nextMeteor = rand(3.5, 9);
+      }
+      for (const m of meteors) {
+        if (!m.line.visible) continue;
+        m.age += dt;
+        const t = m.age / m.life;
+        if (t >= 1) { m.line.visible = false; continue; }
+        const head = t * 230;
+        const tail = Math.max(0, head - 60);
+        const at = m.line.geometry.attributes.position;
+        at.setXYZ(0, m.from.x + m.dir.x * head, m.from.y + m.dir.y * head, m.from.z + m.dir.z * head);
+        at.setXYZ(1, m.from.x + m.dir.x * tail, m.from.y + m.dir.y * tail, m.from.z + m.dir.z * tail);
+        at.needsUpdate = true;
+        m.line.material.opacity = Math.sin(t * Math.PI);
+      }
+
+      nextShip -= dt;
+      if (nextShip <= 0 && !ship.visible) {
+        const a = rand(0, Math.PI * 2);
+        const reach = rand(55, 95);
+        flight.from.set(Math.cos(a) * reach, rand(-22, 22), Math.sin(a) * reach);
+        flight.to.set(Math.cos(a + rand(1.9, 4.3)) * reach, rand(-22, 22), Math.sin(a + rand(1.9, 4.3)) * reach);
+        flight.age = 0;
+        flight.life = rand(11, 17);
+        ship.visible = true;
+      }
+      if (ship.visible) {
+        flight.age += dt;
+        const t = flight.age / flight.life;
+        if (t >= 1) {
+          ship.visible = false;
+          nextShip = rand(22, 40);
+        } else {
+          ship.position.lerpVectors(flight.from, flight.to, t);
+          ship.position.y += Math.sin(elapsed * 2.2) * 0.5;
+          ship.rotation.y += dt * 3;
+          ship.rotation.z = Math.sin(elapsed * 1.7) * 0.18;
+          const fade = Math.min(1, t * 8, (1 - t) * 8);
+          ship.scale.setScalar(fade);
+        }
+      }
+    }
+
+    let follow = null;
+    const world = new THREE.Vector3();
+    const step = new THREE.Vector3();
+    function select(index, fly = true) {
+      state.target = (index + projects.length) % projects.length;
+      const p = projects[state.target];
+      for (const t of tags) if (t.index !== undefined) t.node.setAttribute("aria-pressed", String(t.index === state.target));
+      $("destLabel").textContent = `Projeto ${pad(state.target)} de ${pad(projects.length - 1)} · em órbita de ${p.host}`;
+      $("destName").textContent = p.name;
+      $("destTag").textContent = p.tag;
+      $("destStack").replaceChildren(...p.stack.slice(0, 3).map((s) => el("span", { textContent: s })));
+      $("destWho").textContent = `Piloto: ${p.who}${p.stars ? ` · ★ ${p.stars}` : ""}`;
+      $("destUrl").textContent = p.url.replace(/^https?:\/\//, "").replace(/\/$/, "");
+      const shot = $("destShot");
+      shot.classList.remove("ready");
+      shot.alt = `Tela inicial do ${p.name}`;
+      shot.onload = () => shot.classList.add("ready");
+      shot.src = p.shot;
+      if (shot.complete && shot.naturalWidth) shot.classList.add("ready");
+      if (fly) {
+        follow = anchors[state.target];
+        state.flyUntil = performance.now() + (reduce ? 1 : 1800);
+      }
+    }
+
+    function arrive() {
+        const p = projects[state.target];
+        $("arrLabel").textContent = `Projeto ${pad(state.target)} de ${pad(projects.length - 1)} · você chegou`;
+        $("arrName").textContent = p.name;
+        $("arrTag").textContent = p.tag;
+        $("arrOpen").href = p.url;
+        $("arrShot").src = p.shot;
+        $("arrShot").alt = `Tela inicial do ${p.name}`;
+        $("arrWho").textContent = p.who;
+        $("arrHigh").replaceChildren(...p.high.map((h) => el("li", {}, [el("span", { textContent: h })])));
+        $("arrStack").replaceChildren(...p.stack.map((s) => el("span", { textContent: s })));
+        $("arrLinks").replaceChildren(...p.links.map(([t, href]) => el("a", { textContent: `${t} ↗`, href, target: "_blank", rel: "noopener noreferrer" })));
+        $("arrival").hidden = false;
+        $("arrival").scrollTop = 0;
+        $("arrName").focus();
+        state.arrived = true;
+        jumping = false;
+        $("flash").classList.remove("on");
+        warp.until = performance.now() + 450;
+    }
+
+    // The jump: a dark screen with stars streaking past, faster and faster, instead of a white flash.
+    const warp = { stars: [], until: 0, raf: 0 };
+    function runWarp() {
+      const c = $("warp");
+      const g = c.getContext("2d");
+      const dpr = Math.min(devicePixelRatio || 1, 2);
+      c.width = innerWidth * dpr;
+      c.height = innerHeight * dpr;
+      const cx = c.width / 2;
+      const cy = c.height / 2;
+      const reach = Math.hypot(cx, cy);
+      warp.stars = Array.from({ length: 280 }, () => ({ a: rand(0, Math.PI * 2), z: Math.random(), tint: Math.random() < 0.22 }));
+      warp.until = Infinity;
+      const began = performance.now();
+      cancelAnimationFrame(warp.raf);
+      g.lineCap = "round";
+      (function tick(now) {
+        const t = Math.min(1.5, (now - began) / 1000);
+        const speed = 0.004 + t * t * 0.045;
+        g.fillStyle = "#0d0d0d";
+        g.fillRect(0, 0, c.width, c.height);
+        for (const star of warp.stars) {
+          const from = star.z;
+          star.z += speed * (0.35 + star.z);
+          if (star.z > 1) { star.z = rand(0.02, 0.08); star.a = rand(0, Math.PI * 2); continue; }
+          const cos = Math.cos(star.a);
+          const sin = Math.sin(star.a);
+          g.strokeStyle = `rgba(${star.tint ? "46,201,180" : "242,242,242"},${Math.min(1, star.z * 1.6)})`;
+          g.lineWidth = dpr * (0.6 + star.z * 1.8);
+          g.beginPath();
+          g.moveTo(cx + cos * from * reach, cy + sin * from * reach);
+          g.lineTo(cx + cos * star.z * reach, cy + sin * star.z * reach);
+          g.stroke();
+        }
+        if (now < warp.until) warp.raf = requestAnimationFrame(tick);
+      })(began);
+    }
+
+    let jumping = false;
+    function jump() {
+      if (jumping || state.arrived) return;
+      jumping = true;
+      const land = arrive;
+      if (reduce) return land();
+      follow = { object: anchors[state.target].object, distance: 2.2 };
+      state.flyUntil = performance.now() + 1300;
+      runWarp();
+      $("flash").classList.add("on");
+      setTimeout(land, 1250);
+    }
+    function leave() {
+      $("arrival").hidden = true;
+      state.arrived = false;
+      if (state.view === "gallery") return document.querySelectorAll("#grid .frame")[state.target].focus();
+      select(state.target);
+      $("jump").focus();
+    }
+
+    // ----- gallery view -----
+    $("grid").append(...projects.map((p, index) => {
+      const open = () => { select(index, false); arrive(); };
+      const frame = el("button", { type: "button", className: "frame" }, [
+        el("img", { src: p.shot, alt: `Tela inicial do ${p.name}`, loading: index === 0 ? "eager" : "lazy", width: 1600, height: 1000 }),
+        el("span", { className: "num", textContent: `${pad(index)} · ${p.who}` }),
+        ...(p.stars ? [el("span", { className: "stars", textContent: `★ ${p.stars}`, title: `${p.stars} estrelas no GitHub` })] : []),
+      ]);
+      frame.setAttribute("aria-label", `Ver detalhes de ${p.name}`);
+      frame.addEventListener("click", open);
+      const more = el("button", { type: "button", className: "more", textContent: "Ver detalhes" });
+      more.addEventListener("click", open);
+      return el("li", {}, [el("article", { className: "work" }, [
+        frame,
+        el("div", { className: "meta" }, [
+          el("div", {}, [el("h3", { textContent: p.name }), el("p", { textContent: p.tag }), el("div", { className: "chips" }, p.stack.map((s) => el("span", { textContent: s })))]),
+          el("div", { className: "side" }, [el("a", { className: "go", href: p.url, target: "_blank", rel: "noopener noreferrer", textContent: "ABRIR O PROJETO ↗" }), more]),
+        ]),
+      ])]);
+    }));
+    function setView(view) {
+      state.view = view;
+      document.body.dataset.view = view;
+      $("gallery").hidden = view !== "gallery";
+      $("viewName").textContent = view === "gallery" ? "galeria" : "sistema solar";
+      controls.enabled = view === "space";
+      for (const b of document.querySelectorAll(".views button")) b.setAttribute("aria-pressed", String(b.dataset.view === view));
+      if (view === "gallery") $("gallery").scrollTop = 0;
+    }
+    for (const b of document.querySelectorAll(".views button")) b.addEventListener("click", () => setView(b.dataset.view));
+
+    $("jump").addEventListener("click", jump);
+    $("back").addEventListener("click", leave);
+    addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && state.arrived) return leave();
+      if (state.arrived || state.view === "gallery") return;
+      if (e.key === "ArrowRight") select(state.target + 1);
+      else if (e.key === "ArrowLeft") select(state.target - 1);
+      else if (e.key === "Enter" && e.target.tagName !== "BUTTON" && e.target.tagName !== "A") jump();
+      else return;
+      e.preventDefault();
+    });
+
+    // a click on the scene (not a drag) picks the project star under the pointer
+    const ray = new THREE.Raycaster();
+    let down = null;
+    renderer.domElement.addEventListener("pointerdown", (e) => (down = { x: e.clientX, y: e.clientY }));
+    renderer.domElement.addEventListener("pointerup", (e) => {
+      if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 6) return;
+      const box = renderer.domElement.getBoundingClientRect();
+      ray.setFromCamera({ x: ((e.clientX - box.left) / box.width) * 2 - 1, y: -((e.clientY - box.top) / box.height) * 2 + 1 }, camera);
+      const hitAt = ray.intersectObjects(picks)[0];
+      if (!hitAt) return;
+      const index = hitAt.object.userData.project;
+      state.target === index ? jump() : select(index);
+    });
+
+    function resize() {
+      const w = host.clientWidth;
+      const h = host.clientHeight;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      camera.fov = w < 760 ? 62 : 50;
+      camera.updateProjectionMatrix();
+    }
+    addEventListener("resize", resize);
+
+    const clock = new THREE.Clock();
+    function frame() {
+      requestAnimationFrame(frame);
+      if (state.arrived) return;
+      const dt = Math.min(0.05, clock.getDelta());
+      const pace = reduce ? 0 : 1;
+      sunUniforms.time.value += dt * pace;
+      for (const o of orbiters) {
+        o.angle += o.speed * dt * pace;
+        o.holder.position.set(Math.cos(o.angle) * o.d, 0, Math.sin(o.angle) * o.d);
+      }
+      for (const s of spinners) s.mesh.rotation.y += s.speed * dt * pace;
+      if (!reduce) ambient(dt, clock.elapsedTime);
+
+      if (follow) {
+        follow.object.getWorldPosition(world);
+        step.copy(world).sub(controls.target).multiplyScalar(0.09);
+        controls.target.add(step);
+        camera.position.add(step);
+        if (performance.now() < state.flyUntil) {
+          const distance = camera.position.distanceTo(controls.target);
+          step.copy(camera.position).sub(controls.target).normalize().multiplyScalar((follow.distance - distance) * 0.07);
+          camera.position.add(step);
+        }
+      }
+      controls.update();
+      renderer.render(scene, camera);
+
+      const w = host.clientWidth;
+      const h = host.clientHeight;
+      for (const t of tags) {
+        t.object.getWorldPosition(world);
+        const far = world.distanceTo(camera.position);
+        world.project(camera);
+        const off = world.z > 1 || world.x < -1.1 || world.x > 1.1 || world.y < -1.1 || world.y > 1.1;
+        t.node.hidden = off || (t.index === undefined && far > 160);
+        if (!t.node.hidden) t.node.style.transform = `translate3d(${((world.x + 1) / 2) * w}px, ${((1 - world.y) / 2) * h}px, 0)`;
+      }
+    }
+
+    resize();
+    select(0, false);
+    frame();
+  }
+</script>
+</body>
+</html>
