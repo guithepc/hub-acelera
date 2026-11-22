@@ -179,6 +179,9 @@
   .work .frame { border-radius: 10px; }
   .work .num { left: 10px; top: 10px; border-radius: 999px; background: rgb(13 13 13 / 0.78); color: var(--ink); font-weight: 400; backdrop-filter: blur(4px); }
   .cols { border-top: 1px solid var(--rule); }
+  /* the gallery and the project page are sheets of dark glass over the solar system, which keeps turning behind them */
+  .gallery, .arrival { background: rgb(13 13 13 / 0.55); backdrop-filter: blur(9px); -webkit-backdrop-filter: blur(9px); }
+  body[data-arrived] .space > :not(#scene), body[data-arrived] .space::before { visibility: hidden; }
   .chips { margin-top: 0; gap: 6px; }
   .chips span { border-radius: 999px; padding: 4px 10px; font-size: 11px; color: var(--dim); }
   .work .chips { margin-top: 12px; }
@@ -270,8 +273,6 @@
       high: ["Bloqueio de apps e sites que continua valendo com o app fechado", "Modo restrito: tirar um app da lista pede 30 minutos de espera", "Tudo no aparelho, com conta opcional e sem anúncio"] },
     { name: "Money Flow", who: "Guilherme Pessoa", tag: "Mande um áudio no Telegram e o gasto aparece no seu painel em 5 segundos.", url: "https://landing-page-money-flow.vercel.app/", shot: "covers/money-flow.jpg", stack: ["Java", "Spring Boot", "React", "PostgreSQL", "Telegram"], host: "Saturno", stars: 53, repo: "https://github.com/guithepc/money-flow",
       high: ["O áudio vira valor, categoria e conta, sem digitar nada", "Painel web com tudo o que foi anotado", "Sem planilha, sem app novo e sem senha de banco"] },
-    { name: "The One Digital", who: "Guilherme Pessoa", tag: "Sites, sistemas e automações para negócios locais.", url: "https://theonedigital.vercel.app", shot: "covers/the-one-digital.jpg", stack: ["Vercel"], host: "Netuno",
-      high: ["Portfólio com os trabalhos entregues", "Disponível em português, inglês, holandês e francês", "Sites, sistemas sob medida e automações"] },
     { name: "Octo", who: "Lucas Marujo", tag: "Um ambiente para rodar e orquestrar vários agentes de código numa janela só.", url: "https://octo.marujo.dev/", shot: "covers/octo.jpg", stack: ["Rust", "TypeScript", "JavaScript"], host: "Urano", stars: 28, repo: "https://github.com/lucasmarujo/octo",
       high: ["Claude Code, Codex, Cursor e mais sete agentes lado a lado, em todos os projetos", "Status exato de cada agente: trabalhando, esperando você ou pronto", "Cada agente no seu próprio worktree e branch do git"] },
     { name: "Screen", who: "Willian Figueiredo", tag: "Transforma a call do Discord numa sala com tela, câmera e palco, direto no navegador.", url: "http://screen.willradoux.com/sobre", shot: "covers/screen.jpg", stack: ["TypeScript", "React", "Node.js", "LiveKit", "MongoDB"], host: "Vênus", stars: 0, repo: "https://github.com/willradoux/Screen",
@@ -282,7 +283,7 @@
       high: ["Nove estantes por tema, de Java e Python a IA, DevOps e Carreira", "Até 7 livros por estante, em ordem do iniciante ao avançado", "Busca por título ou autor, filtros de português e gratuito, e marcação do que já foi lido"] },
     { name: "StudyRats", who: "Elson Reis", tag: "Check-in de estudo com foto: o calendário registra a constância e o ranking mostra quem mantém o ritmo.", url: "https://studyrats-vert.vercel.app", shot: "covers/studyrats.jpg", stack: ["React", "Vite", "Supabase", "Tailwind CSS"], host: "Saturno", stars: 6, repo: "https://github.com/elsonreiss/studyrats",
       high: ["Cada check-in exige uma foto do que foi estudado", "Calendário que marca os dias de estudo", "Ranking por dias ativos, na comunidade e nos desafios"] },
-    { name: "Plano de Carreira 3.0", who: "Guilherme Pessoa", tag: "Seus próximos 12 meses em tech, planejados numa conversa de 10 minutos.", url: "https://plano.aceleradev.com.br/", shot: "covers/plano.jpg", stack: ["React", "Vite", "Fastify", "PostgreSQL", "IA"], host: "Marte",
+    { name: "Plano de Carreira 3.0", who: "Guilherme Pessoa", tag: "Seus próximos 12 meses em tech, planejados numa conversa de 10 minutos.", url: "https://plano.aceleradev.com.br/", shot: "covers/plano.jpg", stack: ["React", "Vite", "Fastify", "PostgreSQL", "IA"], host: "Netuno",
       high: ["Uma conversa de uns 10 minutos, quase toda em botões", "O plano se preenche na sua frente: rota, fases, rotina e tarefas da primeira semana", "Fica na sua área, com PDF para baixar"] },
   ];
   // Contacts are the ones each author lists on their own GitHub profile or project site.
@@ -570,6 +571,103 @@
       });
       axis.add(new THREE.Mesh(new THREE.SphereGeometry(r * 1.04, 48, 32), new THREE.MeshBasicMaterial({ color: 0x5aa9ff, transparent: true, opacity: 0.13, side: THREE.BackSide, depthWrite: false })));
     }
+    // Easter egg: Uranus is reserved for Octo, so a kraken sits on top of it with its eight arms spread down around the planet.
+    // It rides on the planet holder (not the spinning, tilted globe), so it stays upright, facing the side the page opens on.
+    function kraken(R) {
+      const group = new THREE.Group();
+      // stippled skin, after the halftone look of the Octo artwork: dark ground, pink dots of uneven size
+      const stipple = (cols, rows) => {
+        const texture = canvasTexture(256, 256, (g, w) => {
+          g.fillStyle = "#3d0a22";
+          g.fillRect(0, 0, w, w);
+          const cell = w / 16;
+          for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
+            g.fillStyle = ["#e8457f", "#cf2f6c", "#f2709f", "#b01f58", "#ff9dbd"][Math.floor(Math.random() * 5)];
+            g.beginPath();
+            g.arc((x + 0.5 + rand(-0.12, 0.12)) * cell, (y + 0.5 + rand(-0.12, 0.12)) * cell, rand(0.2, 0.46) * cell, 0, Math.PI * 2);
+            g.fill();
+          }
+        });
+        texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set(cols, rows);
+        return texture;
+      };
+      const skinOf = (cols, rows) => {
+        const map = stipple(cols, rows);
+        return new THREE.MeshStandardMaterial({ map, roughness: 0.75, metalness: 0, emissive: 0x7a1a44, emissiveMap: map, emissiveIntensity: 0.55 });
+      };
+      const headSkin = skinOf(9, 5);
+      const armSkin = skinOf(7, 2);
+      const shade = new THREE.MeshStandardMaterial({ color: 0x1c040e, roughness: 0.9 });
+      const blob = (r, x, y, z, sx, sy, sz, material = headSkin) => {
+        const part = new THREE.Mesh(new THREE.SphereGeometry(r * R, 24, 16), material);
+        part.position.set(x * R, y * R, z * R);
+        part.scale.set(sx, sy, sz);
+        group.add(part);
+        return part;
+      };
+      blob(0.56, 0, 0.98, 0, 1.05, 0.62, 1.05);
+      blob(0.6, 0, 1.56, -0.08, 0.95, 1.2, 1);
+      blob(0.17, 0, 1.1, 0.46, 0.8, 1.35, 0.7);
+      for (const side of [-1, 1]) {
+        blob(0.2, side * 0.25, 1.4, 0.47, 1.5, 0.42, 0.7).rotation.z = side * 0.45;
+        blob(0.12, side * 0.42, 1.2, 0.3, 1, 1.2, 0.8);
+        blob(0.11, side * 0.23, 1.26, 0.46, 1.3, 0.8, 0.5, shade);
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.05 * R, 16, 12), new THREE.MeshBasicMaterial({ color: 0xffd27a }));
+        eye.position.set(side * 0.23 * R, 1.245 * R, 0.52 * R);
+        eye.scale.set(1.4, 0.45, 0.5);
+        eye.rotation.z = side * 0.35;
+        group.add(eye);
+      }
+      const center = new THREE.Vector3();
+      const vertex = new THREE.Vector3();
+      const girth = (t) => 0.15 * R * (1 - 0.86 * t);
+      for (let k = 0; k < 8; k++) {
+        const around = rad(22.5 + k * 45);
+        // each arm drapes over the planet, then lets go of it and rolls its tip outward and back up in a spiral
+        const reach = 0.95 + (k % 3) * 0.22;
+        const points = [];
+        const drape = 22;
+        for (let i = 0; i <= drape; i++) {
+          const t = i / drape;
+          const down = 0.42 + t * reach;
+          const turn = around + 0.34 * Math.sin(t * 3.4 + k * 1.3) * t;
+          const out = R * 1.02 + girth(t * 0.6) + t * t * 0.1 * R;
+          points.push(new THREE.Vector3(Math.sin(down) * Math.sin(turn), Math.cos(down), Math.sin(down) * Math.cos(turn)).multiplyScalar(out));
+        }
+        const end = points[drape];
+        const along = end.clone().sub(points[drape - 1]).normalize();
+        const away = end.clone().normalize();
+        away.addScaledVector(along, -away.dot(along)).normalize();
+        const sideways = new THREE.Vector3().crossVectors(along, away);
+        const loop = (0.3 + (k % 2) * 0.1) * R;
+        const turns = Math.PI * (2.4 + (k % 3) * 0.3);
+        const hub = end.clone().addScaledVector(away, loop);
+        for (let i = 1; i <= 26; i++) {
+          const t = i / 26;
+          const angle = t * turns;
+          const radius = loop * (1 - 0.82 * t);
+          points.push(hub.clone().addScaledVector(away, -Math.cos(angle) * radius).addScaledVector(along, Math.sin(angle) * radius).addScaledVector(sideways, (k % 2 ? 1 : -1) * t * 0.22 * R));
+        }
+        const curve = new THREE.CatmullRomCurve3(points);
+        const rings = 72;
+        const sides = 8;
+        const geo = new THREE.TubeGeometry(curve, rings, girth(0), sides, false);
+        const at = geo.attributes.position;
+        for (let i = 0; i <= rings; i++) {
+          curve.getPointAt(i / rings, center);
+          const taper = girth(i / rings) / girth(0);
+          for (let j = 0; j <= sides; j++) {
+            const n = i * (sides + 1) + j;
+            vertex.fromBufferAttribute(at, n).sub(center).multiplyScalar(taper).add(center);
+            at.setXYZ(n, vertex.x, vertex.y, vertex.z);
+          }
+        }
+        geo.computeVertexNormals();
+        group.add(new THREE.Mesh(geo, armSkin));
+      }
+      return group;
+    }
     const planets = {};
     planetData.forEach((p) => {
       const plane = new THREE.Group();
@@ -584,6 +682,11 @@
       const mesh = new THREE.Mesh(new THREE.SphereGeometry(p.r, 64, 40), new THREE.MeshStandardMaterial({ map: surface(p.kind, p.colors), roughness: 1, metalness: 0 }));
       axis.add(mesh);
       if (p.kind === "earth") dressEarth(mesh, axis, p.r);
+      if (p.name === "Urano") {
+        const rig = kraken(p.r);
+        rig.rotation.y = -rad(p.node);
+        holder.add(rig);
+      }
       if (p.ring) {
         const inner = p.r * 1.24;
         const outer = p.r * 2.32;
@@ -787,6 +890,8 @@
         $("arrHigh").replaceChildren(...p.high.map((h) => el("li", {}, [el("span", { textContent: h })])));
         $("arrStack").replaceChildren(...p.stack.map((s) => el("span", { textContent: s })));
         $("arrLinks").replaceChildren(...p.links.map(([t, href]) => el("a", { textContent: `${t} ↗`, href, target: "_blank", rel: "noopener noreferrer" })));
+        homeView();
+        document.body.dataset.arrived = "true";
         $("arrival").hidden = false;
         $("arrival").scrollTop = 0;
         $("arrName").focus();
@@ -848,6 +953,7 @@
     }
     function leave() {
       $("arrival").hidden = true;
+      delete document.body.dataset.arrived;
       state.arrived = false;
       if (state.view === "gallery") return document.querySelectorAll("#grid .frame")[state.target].focus();
       select(state.target);
@@ -874,6 +980,12 @@
         ]),
       ])]);
     }));
+    // the opening framing of the whole system, used as the backdrop of the gallery and of the project page
+    function homeView() {
+      follow = null;
+      controls.target.set(0, 0, 0);
+      camera.position.set(0, 29.5, 73.5);
+    }
     function setView(view) {
       state.view = view;
       document.body.dataset.view = view;
@@ -881,7 +993,10 @@
       $("viewName").textContent = view === "gallery" ? "galeria" : "sistema solar";
       controls.enabled = view === "space";
       for (const b of document.querySelectorAll(".views button")) b.setAttribute("aria-pressed", String(b.dataset.view === view));
-      if (view === "gallery") $("gallery").scrollTop = 0;
+      if (view === "gallery") {
+        $("gallery").scrollTop = 0;
+        homeView();
+      }
     }
     for (const b of document.querySelectorAll(".views button")) b.addEventListener("click", () => setView(b.dataset.view));
 
@@ -924,7 +1039,6 @@
     const clock = new THREE.Clock();
     function frame() {
       requestAnimationFrame(frame);
-      if (state.arrived) return;
       const dt = Math.min(0.05, clock.getDelta());
       const pace = reduce ? 0 : 1;
       sunUniforms.time.value += dt * pace;
