@@ -54,11 +54,14 @@ export default async function ProjectPage({ params }: PageProps<"/projetos/[slug
     <main className="flex-1 pt-28 sm:pt-36">
       <article>
         <header className="px-5 sm:px-9">
-          <Link href="/projetos/" className="label text-dim hover:text-ink transition-colors">
+          <Link
+            href="/projetos/"
+            className="label text-dim hover:text-ink -my-3 inline-block py-3 transition-colors"
+          >
             ← Todos os projetos
           </Link>
           <p className="label text-mint mt-10">Projeto {position}</p>
-          <h1 className="font-display mt-4 text-5xl leading-[0.9] font-black tracking-tighter text-balance sm:text-8xl">
+          <h1 className="font-display mt-4 text-[clamp(2.25rem,12vw,3rem)] leading-[0.9] font-black tracking-tighter text-balance [overflow-wrap:anywhere] sm:text-8xl">
             {project.name}
           </h1>
           <p className="text-soft mt-6 max-w-2xl text-xl sm:text-2xl">{project.tagline}</p>
@@ -215,14 +218,14 @@ function AuthorCard({ author }: { author: Author }) {
         <h3 className="text-xl font-medium">{author.name}</h3>
         {author.role && <p className="label text-dim mt-1">{author.role}</p>}
         {author.contacts.length > 0 && (
-          <ul className="mt-4 flex flex-wrap gap-x-5 gap-y-2">
+          <ul className="mt-2 flex flex-wrap gap-x-5">
             {author.contacts.map((contact) => (
               <li key={contact.url}>
                 <a
                   href={contact.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="label text-mint underline-offset-4 hover:underline"
+                  className="label text-mint inline-block py-2 underline-offset-4 hover:underline"
                   aria-label={`${contactLabels[contact.kind]} de ${author.name}, abre em nova aba`}
                 >
                   {contactLabels[contact.kind]} ↗

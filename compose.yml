@@ -2,8 +2,7 @@ services:
   hub-acelera:
     build:
       context: .
-      args:
-        SITE_URL: https://${HUB_DOMAIN:?defina HUB_DOMAIN, por exemplo hub.exemplo.com}
+      dockerfile: deploy/site.Dockerfile
     image: hub-acelera:latest
     restart: unless-stopped
     networks:
@@ -11,7 +10,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.docker.network=${TRAEFIK_NETWORK:-traefik}
-      - traefik.http.routers.hub-acelera.rule=Host(`${HUB_DOMAIN}`)
+      - traefik.http.routers.hub-acelera.rule=Host(`${HUB_DOMAIN:?defina HUB_DOMAIN, por exemplo hub.aceleradev.com.br}`)
       - traefik.http.routers.hub-acelera.entrypoints=${TRAEFIK_ENTRYPOINT:-websecure}
       - traefik.http.routers.hub-acelera.tls.certresolver=${TRAEFIK_CERTRESOLVER:-letsencrypt}
       - traefik.http.services.hub-acelera.loadbalancer.server.port=80

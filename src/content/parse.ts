@@ -43,6 +43,16 @@ export function parseProject(
   return { ...result.data, slug };
 }
 
+export function projectFileNames(entries: readonly string[]): string[] {
+  const stray = entries.filter((entry) => !entry.startsWith(".") && !entry.endsWith(".json"));
+  if (stray.length > 0) {
+    throw new ContentError(
+      `content/projects só aceita arquivos .json, em minúsculas. Renomeie ou remova:\n${stray.map((entry) => `  - ${entry}`).join("\n")}`,
+    );
+  }
+  return entries.filter((entry) => entry.endsWith(".json"));
+}
+
 export function sortProjects(projects: Project[]): Project[] {
   return projects.toSorted((a, b) => a.order - b.order || a.name.localeCompare(b.name, "pt-BR"));
 }

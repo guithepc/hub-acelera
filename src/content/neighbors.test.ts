@@ -17,4 +17,11 @@ describe("initials", () => {
     expect(initials("Ana Maria Exemplo")).toBe("AE");
     expect(initials("luanderson")).toBe("L");
   });
+
+  it("ignora emoji e símbolos, sem partir um caractere ao meio", () => {
+    expect(initials("Time Foguete 🚀")).toBe("TF");
+    expect(initials("🚀 Ana")).toBe("A");
+    expect(initials("Ágata Érica")).toBe("ÁÉ");
+    expect(initials("𝒜na")).toBe("𝒜");
+  });
 });

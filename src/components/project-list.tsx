@@ -3,7 +3,7 @@
 import { useReducedMotion } from "@/lib/use-reduced-motion";
 import { motion, useMotionValue, useSpring } from "motion/react";
 import Link from "next/link";
-import { useState, type PointerEvent } from "react";
+import { useEffect, useRef, useState, type PointerEvent } from "react";
 import type { Project } from "@/content/schema";
 
 type ListProject = Pick<Project, "slug" | "name" | "tagline" | "cover" | "previewVideo"> & {
@@ -15,6 +15,8 @@ type Active =
 
 const none: Active = { kind: "none" };
 const previewWidth = 440;
+const previewHeight = (previewWidth * 10) / 16;
+const edge = 16;
 
 export function ProjectList({ projects }: { projects: ListProject[] }) {
   const [active, setActive] = useState<Active>(none);
@@ -28,16 +30,12 @@ export function ProjectList({ projects }: { projects: ListProject[] }) {
   const springX = useSpring(x, spring);
   const springY = useSpring(y, spring);
 
-  function follow(event: PointerEvent) {
-    if (event.pointerType !== "mouse") return;
-    setFloatingLoaded(true);
-    const left = Math.min(event.clientX + 28, window.innerWidth - previewWidth - 16);
-    x.set(Math.max(16, left));
-    y.set(event.clientY - 140);
+  const pointer = useRef({ x: 0, y: 0, inside: false });
 
-    const slug = (event.target as Element).closest<HTMLElement>("[data-slug]")?.dataset.slug;
-    if (slug === undefined) return;
+  function showUnder(target: Element | null) {
+    const slug = target?.closest<HTMLElement>("[data-slug]")?.dataset.slug;
     setActive((current) => {
+      if (slug === undefined) return current.kind === "floating" ? none : current;
       if (current.kind === "floating" && current.slug === slug) return current;
       if (reduceMotion || current.kind !== "floating") {
         springX.jump(x.get());
@@ -46,6 +44,32 @@ export function ProjectList({ projects }: { projects: ListProject[] }) {
       return { kind: "floating", slug };
     });
   }
+
+  function follow(event: PointerEvent) {
+    if (event.pointerType !== "mouse") return;
+    setFloatingLoaded(true);
+    pointer.current = { x: event.clientX, y: event.clientY, inside: true };
+    const left = Math.min(event.clientX + 28, window.innerWidth - previewWidth - edge);
+    const top = Math.min(event.clientY - 140, window.innerHeight - previewHeight - edge);
+    x.set(Math.max(edge, left));
+    y.set(Math.max(edge, top));
+    showUnder(event.target as Element);
+  }
+
+  const showUnderRef = useRef(showUnder);
+  useEffect(() => {
+    showUnderRef.current = showUnder;
+  });
+  useEffect(() => {
+    function onScroll() {
+      if (!pointer.current.inside) return;
+      showUnderRef.current(document.elementFromPoint(pointer.current.x, pointer.current.y));
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, []);
 
   function openInline(slug: string) {
     setInlineLoaded((loaded) => (loaded.has(slug) ? loaded : new Set(loaded).add(slug)));
@@ -56,7 +80,13 @@ export function ProjectList({ projects }: { projects: ListProject[] }) {
     <div
       onPointerMove={follow}
       onPointerLeave={(event) => {
-        if (event.pointerType === "mouse") setActive(none);
+        if (event.pointerType !== "mouse") return;
+        pointer.current.inside = false;
+        setActive(none);
+      }}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget))
+          setActive((current) => (current.kind === "inline" ? none : current));
       }}
     >
       <ol className="border-line border-t">
@@ -106,6 +136,7 @@ export function ProjectList({ projects }: { projects: ListProject[] }) {
                       project={project}
                       load={inlineLoaded.has(project.slug)}
                       playing={isInline}
+                      reduceMotion={reduceMotion}
                       className="mt-6 w-full max-w-xl"
                     />
                     <span className="label text-mint mt-3 block pb-1">
@@ -139,6 +170,7 @@ export function ProjectList({ projects }: { projects: ListProject[] }) {
                 project={project}
                 load={floatingLoaded}
                 playing={shown}
+                reduceMotion={reduceMotion}
                 data-shown={shown}
                 className="col-start-1 row-start-1 shadow-2xl shadow-black/60 transition-opacity duration-150 data-[shown=false]:opacity-0"
               />
@@ -154,18 +186,20 @@ function Preview({
   project,
   load,
   playing,
+  reduceMotion,
   className = "",
   ...rest
 }: {
   project: ListProject;
   load: boolean;
   playing: boolean;
+  reduceMotion: boolean;
   className?: string;
   "data-shown"?: boolean;
 }) {
   const frame = `border-line bg-deep aspect-[16/10] h-auto rounded-lg border object-cover ${className}`;
   if (!load) return <span {...rest} className={`block ${frame}`} data-cover={project.slug} />;
-  if (project.previewVideo && playing) {
+  if (project.previewVideo && playing && !reduceMotion) {
     return (
       <video
         {...rest}

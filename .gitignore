@@ -46,3 +46,6 @@ next-env.d.ts
 
 # medições brutas do Lighthouse
 /docs/evidence/**/lighthouse/*-[0-9].json
+
+# worktrees de agentes
+/.claude/worktrees/

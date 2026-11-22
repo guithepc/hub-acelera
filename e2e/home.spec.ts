@@ -53,8 +53,19 @@ test("com movimento reduzido não há contagem nem animação, e a home continua
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
+  await expect(page.getByRole("button", { name: "Ignição" })).toBeFocused();
+  await gate(page).evaluate((element) => {
+    const seen: string[] = [];
+    new MutationObserver(() => seen.push(element.dataset.phase ?? "")).observe(element, {
+      attributeFilter: ["data-phase"],
+    });
+    (window as unknown as { phases: string[] }).phases = seen;
+  });
   await page.getByRole("button", { name: "Ignição" }).click();
   await expect(gate(page)).toHaveAttribute("data-phase", "open");
+  expect(await page.evaluate(() => (window as unknown as { phases: string[] }).phases)).toEqual([
+    "open",
+  ]);
   await expect(page.getByTestId("warp-field")).toHaveAttribute("data-animated", "false");
   const before = await canvasInk(page);
   await page.waitForTimeout(400);
@@ -74,4 +85,112 @@ test("a home não rola para o lado", async ({ page }) => {
     () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
   );
   expect(scrollsSideways).toBe(false);
+});
+
+test("sem JavaScript, a entrada não cobre o conteúdo", async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  const page = await context.newPage();
+  await page.goto("/");
+  await expect(gate(page)).toBeHidden();
+  await page.getByRole("link", { name: /Ver projetos/ }).click();
+  await expect(page.getByTestId("project").first()).toBeVisible();
+  const overflow = await page.locator("html").evaluate((html) => getComputedStyle(html).overflowY);
+  expect(overflow).not.toBe("hidden");
+  await context.close();
+});
+
+test("a página não rola atrás da entrada, e entrar mostra o hero", async ({ page, isMobile }) => {
+  test.skip(isMobile, "roda do mouse é de desktop");
+  await page.goto("/");
+  await expect(gate(page)).toHaveAttribute("data-phase", "closed");
+  await page.mouse.wheel(0, 1500);
+  await page.keyboard.press("PageDown");
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  await page.getByRole("button", { name: "Entrar sem contagem" }).click();
+  await expect(page.getByRole("heading", { level: 1 })).toBeInViewport();
+  await page.mouse.wheel(0, 600);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+});
+
+test("a entrada sai com a animação antes de sumir", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Entrar sem contagem" }).click();
+  await expect(gate(page)).toHaveAttribute("data-phase", "open");
+  const display = () => gate(page).evaluate((element) => getComputedStyle(element).display);
+  expect(await display()).not.toBe("none");
+  await expect.poll(display, { timeout: 3000 }).toBe("none");
+});
+
+test("a entrada não volta ao chegar na home por um link, depois de recarregar outra página", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Entrar sem contagem" }).click();
+  await expect(gate(page)).toHaveAttribute("data-phase", "open");
+  await page.goto("/projetos/");
+  await page.getByRole("link", { name: /Acelera Dev \/ Hub/ }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("HubAcelera");
+  await expect(gate(page)).toBeHidden();
+});
+
+test("a entrada não reaparece em uma aba nova da mesma sessão", async ({ page, context }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Entrar sem contagem" }).click();
+  await expect(gate(page)).toHaveAttribute("data-phase", "open");
+  const second = await context.newPage();
+  await second.goto("/");
+  await expect(second.getByTestId("entry-gate")).toBeHidden();
+});
+
+test("um clique na entrada antes de o JavaScript carregar não é perdido", async ({ page }) => {
+  await page.route(/_next\/static\/.*\.js/, async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 2500));
+    await route.continue();
+  });
+  await page.goto("/", { waitUntil: "commit" });
+  const skip = page.getByRole("button", { name: "Entrar sem contagem" });
+  await skip.waitFor();
+  await expect(gate(page)).not.toHaveAttribute("data-ready", "true");
+  await skip.click();
+  await expect(gate(page)).toBeHidden();
+  await expect(page.getByRole("link", { name: /Ver projetos/ })).toBeVisible();
+});
+
+for (const width of [320, 360]) {
+  test(`em ${String(width)} px nenhuma página rola para o lado`, async ({ page, isMobile }) => {
+    test.skip(isMobile, "largura fixada no teste");
+    await page.setViewportSize({ width, height: 700 });
+    await page.goto("/projetos/");
+    const paths = await page
+      .getByTestId("project")
+      .getByRole("link")
+      .evaluateAll((links) => links.map((link) => link.getAttribute("href") ?? ""));
+    for (const path of ["/", "/projetos/", "/projetos/nao-existe/", ...paths]) {
+      await page.goto(path);
+      const overflow = await page.evaluate(
+        () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      );
+      expect(overflow, path).toBeLessThanOrEqual(0);
+    }
+  });
+}
+
+test("no celular, os links de contato e de navegação têm pelo menos 24 px de altura", async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(!isMobile, "alvo de toque é de celular");
+  await page.goto("/projetos/");
+  const first = await page.getByTestId("project").getByRole("link").first().getAttribute("href");
+  await page.goto(first ?? "/");
+  const small = await page.locator("header a, main a").evaluateAll((links) =>
+    links
+      .map((link) => ({
+        text: link.textContent.trim(),
+        height: link.getBoundingClientRect().height,
+      }))
+      .filter((link) => link.height < 24),
+  );
+  expect(small).toEqual([]);
 });

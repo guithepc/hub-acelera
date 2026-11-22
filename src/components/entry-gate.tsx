@@ -1,24 +1,26 @@
 "use client";
 
 import { useReducedMotion } from "@/lib/use-reduced-motion";
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 type Gate = { phase: "closed" } | { phase: "counting"; left: number } | { phase: "open" };
 
-const storageKey = "hub-acelera:entered";
+const cookieName = "hub_acelera_entered";
 const tickMs = 380;
+const exitMs = 900;
 
 export const focusAfterOpenId = "inicio";
 
-export const gateBootScript = `try{if(sessionStorage.getItem(${JSON.stringify(storageKey)}))document.documentElement.dataset.entered="true"}catch{}`;
+const rememberSource = `document.cookie="${cookieName}=1; path=/; SameSite=Lax";document.documentElement.dataset.entered="true"`;
+
+export const gateBootScript = `(function(){var h=document.documentElement;if(document.cookie.indexOf("${cookieName}=1")>-1)h.dataset.entered="true";document.addEventListener("click",function(e){var g=document.getElementById("entry-gate");if(g&&g.dataset.ready!=="true"&&e.target.closest&&e.target.closest("#entry-gate button")){${rememberSource}}})})()`;
+
+function subscribeToNothing() {
+  return () => undefined;
+}
 
 function remember() {
-  document.documentElement.dataset.entered = "true";
-  try {
-    sessionStorage.setItem(storageKey, "1");
-  } catch {
-    return;
-  }
+  document.cookie = `${cookieName}=1; path=/; SameSite=Lax`;
 }
 
 export function EntryGate() {
@@ -38,23 +40,50 @@ export function EntryGate() {
   useEffect(() => {
     if (gate.phase !== "open") return;
     remember();
-    document.getElementById(focusAfterOpenId)?.focus({ preventScroll: true });
-  }, [gate.phase]);
+    const anchor = document.getElementById(decodeURIComponent(window.location.hash.slice(1)));
+    if (anchor) anchor.scrollIntoView({ behavior: "instant" });
+    else window.scrollTo({ top: 0, behavior: "instant" });
+    (anchor ?? document.getElementById(focusAfterOpenId))?.focus({ preventScroll: true });
+    const timer = setTimeout(
+      () => {
+        document.documentElement.dataset.entered = "true";
+      },
+      reduceMotion ? 0 : exitMs,
+    );
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [gate.phase, reduceMotion]);
 
   const ignition = useRef<HTMLButtonElement>(null);
   const skip = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
-    if (document.documentElement.dataset.entered !== "true") ignition.current?.focus();
-  }, []);
+  const ready = useSyncExternalStore(
+    subscribeToNothing,
+    () => true,
+    () => false,
+  );
 
-  function keepFocusInside(event: KeyboardEvent) {
-    if (event.key !== "Tab" || gate.phase === "open") return;
-    event.preventDefault();
-    const target =
-      document.activeElement === skip.current || ignition.current?.disabled ? ignition : skip;
-    (target.current?.disabled ? skip : target).current?.focus();
-  }
+  const trapped = gate.phase !== "open";
+  const counting = gate.phase === "counting";
+
+  useEffect(() => {
+    if (!trapped || document.documentElement.dataset.entered === "true") return;
+    (counting ? skip : ignition).current?.focus();
+
+    function keepFocusInside(event: globalThis.KeyboardEvent) {
+      if (event.key !== "Tab") return;
+      event.preventDefault();
+      const stops = counting ? [skip.current] : [ignition.current, skip.current];
+      const next =
+        stops[(stops.indexOf(document.activeElement as HTMLButtonElement) + 1) % stops.length];
+      next?.focus();
+    }
+    document.addEventListener("keydown", keepFocusInside, true);
+    return () => {
+      document.removeEventListener("keydown", keepFocusInside, true);
+    };
+  }, [trapped, counting]);
 
   const count = gate.phase === "counting" ? gate.left : gate.phase === "open" ? 0 : 3;
 
@@ -65,9 +94,9 @@ export function EntryGate() {
       aria-modal="true"
       aria-label="Entrada do Hub Acelera"
       data-testid="entry-gate"
+      data-ready={ready}
       data-phase={gate.phase}
       inert={gate.phase === "open"}
-      onKeyDown={keepFocusInside}
       className="bg-void fixed inset-0 z-40 grid place-items-center bg-[linear-gradient(var(--color-line)_1px,transparent_1px),linear-gradient(90deg,var(--color-line)_1px,transparent_1px)] bg-[size:100%_48px,48px_100%] transition-[clip-path] duration-900 ease-[cubic-bezier(0.7,0,0.2,1)] [clip-path:inset(0_0_0_0)] data-[phase=open]:pointer-events-none data-[phase=open]:[clip-path:inset(0_0_100%_0)]"
     >
       <div className="grid justify-items-center gap-6 text-center">
@@ -81,11 +110,12 @@ export function EntryGate() {
         <button
           ref={ignition}
           type="button"
-          disabled={gate.phase !== "closed"}
+          aria-disabled={gate.phase !== "closed"}
           onClick={() => {
+            if (gate.phase !== "closed") return;
             setGate(reduceMotion ? { phase: "open" } : { phase: "counting", left: 3 });
           }}
-          className="label bg-amber text-void cursor-pointer rounded-full px-9 py-4 font-semibold shadow-[0_0_0_6px_rgb(255_181_71/0.18)] transition-shadow hover:shadow-[0_0_0_10px_rgb(255_181_71/0.22)] disabled:cursor-default"
+          className="label bg-amber text-void cursor-pointer rounded-full px-9 py-4 font-semibold shadow-[0_0_0_6px_rgb(255_181_71/0.18)] transition-shadow hover:shadow-[0_0_0_10px_rgb(255_181_71/0.22)] aria-disabled:cursor-default"
         >
           Ignição
         </button>
@@ -95,7 +125,7 @@ export function EntryGate() {
           onClick={() => {
             setGate({ phase: "open" });
           }}
-          className="label text-dim hover:text-ink cursor-pointer transition-colors"
+          className="label text-dim hover:text-ink cursor-pointer px-4 py-3 transition-colors"
         >
           Entrar sem contagem
         </button>

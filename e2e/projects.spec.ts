@@ -53,6 +53,53 @@ test.describe("com mouse", () => {
     await expect(shownCover(page)).toHaveAttribute("data-cover", await slugOf(last));
   });
 
+  test("rolar a página sem mexer o mouse troca o preview para o projeto sob o cursor", async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1280, height: 500 });
+    const first = rows(page).first();
+    await first.hover();
+    await expect(shownCover(page)).toHaveAttribute("data-cover", await slugOf(first));
+    const box = await first.boundingBox();
+    if (!box) throw new Error("item sem caixa");
+    const position = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+    const second = await rows(page).nth(1).boundingBox();
+    if (!second) throw new Error("segundo item sem caixa");
+    await page.mouse.wheel(0, second.y - box.y);
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+    await expect
+      .poll(async () => {
+        const under = await page.evaluate(
+          ({ x, y }) =>
+            document.elementFromPoint(x, y)?.closest<HTMLElement>("[data-slug]")?.dataset.slug ??
+            null,
+          position,
+        );
+        const shown =
+          (await shownCover(page).count()) === 1
+            ? await shownCover(page).getAttribute("data-cover")
+            : null;
+        return under !== null && under === shown;
+      })
+      .toBe(true);
+    await expect(shownCover(page)).not.toHaveAttribute("data-cover", await slugOf(first));
+  });
+
+  test("perto da borda de baixo o preview fica inteiro dentro da tela", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    const row = rows(page).nth(1);
+    const box = await row.boundingBox();
+    if (!box) throw new Error("item sem caixa");
+    await row.hover();
+    await page.mouse.move(box.x + box.width / 2, Math.min(box.y + box.height - 4, 712));
+    await expect
+      .poll(async () => {
+        const preview = await floating(page).boundingBox();
+        return preview ? preview.y + preview.height : Infinity;
+      })
+      .toBeLessThanOrEqual(720);
+  });
+
   test("sair da lista esconde o preview", async ({ page }) => {
     await rows(page).first().hover();
     await page.getByRole("heading", { level: 1 }).hover();
@@ -74,6 +121,22 @@ test.describe("com mouse", () => {
       await expect(row).toBeFocused();
       await expect(row.getByTestId("inline-preview")).toHaveAttribute("data-open", "true");
     }
+  });
+});
+
+test.describe("com teclado", () => {
+  test.skip(({ isMobile }) => isMobile, "teclado é de desktop");
+
+  test("o preview aberto pelo teclado fecha quando o foco sai da lista", async ({ page }) => {
+    const all = await rows(page).all();
+    await page.getByRole("heading", { level: 1 }).click();
+    for (const row of all) {
+      await page.keyboard.press("Tab");
+      await expect(row).toBeFocused();
+    }
+    await expect(page.locator('[data-testid="inline-preview"][data-open="true"]')).toHaveCount(1);
+    await page.keyboard.press("Tab");
+    await expect(page.locator('[data-testid="inline-preview"][data-open="true"]')).toHaveCount(0);
   });
 });
 
