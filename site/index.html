@@ -613,7 +613,7 @@
       const holder = new THREE.Group();
       plane.add(holder);
       const star = new THREE.Mesh(new THREE.SphereGeometry(0.36, 20, 14), new THREE.MeshBasicMaterial({ color: 0xfff1cc }));
-      holder.add(star, glow(0xffb000, 3.4, 0.95));
+      holder.add(star, glow(0xffb000, 2.1, 0.5));
       const hit = new THREE.Mesh(new THREE.SphereGeometry(1.3, 10, 8), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }));
       hit.userData.project = index;
       holder.add(hit);
