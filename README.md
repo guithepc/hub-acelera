@@ -4,6 +4,8 @@ A 3D solar system that lists the projects built by the Acelera Dev community. Ea
 
 Live at https://hub.aceleradev.com.br.
 
+![The solar system view, with one project star selected and its card open](docs/readme/solar-system.jpg)
+
 ## What the page does
 
 - The solar system view shows the Sun and eight planets. You drag to rotate and scroll to zoom.
@@ -13,6 +15,8 @@ Live at https://hub.aceleradev.com.br.
 - Uranus is reserved for Octo. A kraken sits on it.
 
 The interface text is in Portuguese.
+
+![The gallery view, with project cards ordered by GitHub stars](docs/readme/gallery.jpg)
 
 ## How it is built
 
