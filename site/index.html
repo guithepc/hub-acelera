@@ -179,6 +179,7 @@
   .work .frame { border-radius: 10px; }
   .work .num { left: 10px; top: 10px; border-radius: 999px; background: rgb(13 13 13 / 0.78); color: var(--ink); font-weight: 400; backdrop-filter: blur(4px); }
   .cols { border-top: 1px solid var(--rule); }
+  #arrName:focus { outline: none; }
   /* the gallery and the project page are sheets of dark glass over the solar system, which keeps turning behind them */
   .gallery, .arrival { background: rgb(13 13 13 / 0.55); backdrop-filter: blur(9px); -webkit-backdrop-filter: blur(9px); }
   body[data-arrived] .space > :not(#scene), body[data-arrived] .space::before { visibility: hidden; }
@@ -195,6 +196,17 @@
     .views { top: 90px; }
     .gallery { inset: 142px 0 0; }
     body[data-view="gallery"] .space::before { height: 142px; }
+    /* phone: the project card is a short strip at the bottom, so the solar system keeps most of the screen */
+    .dest { padding-block: 12px; padding-bottom: max(12px, env(safe-area-inset-bottom, 0px)); }
+    .card { flex-direction: row; align-items: stretch; }
+    .shot { width: 112px; aspect-ratio: auto; flex: none; }
+    .card .text { padding: 10px 12px 11px; gap: 5px; }
+    .card .text > .label { font-size: 10px; letter-spacing: 0.06em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card h2 { font-size: 23px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card p, .card .chips { display: none; }
+    .card .row { flex-wrap: nowrap; gap: 10px; }
+    .card .row .label { font-size: 9.5px; letter-spacing: 0.04em; line-height: 1.35; min-width: 0; }
+    .jump { padding: 9px 14px; font-size: 11px; flex: none; }
   }
 </style>
 </head>
@@ -335,8 +347,10 @@
     host.append(renderer.domElement);
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x0d0d0d);
+    // a portrait phone sees a narrow slice, so it starts further back to fit the system out to Saturn
+    const homeSpot = () => (host.clientWidth < 760 ? [0, 52, 135] : [0, 29.5, 73.5]);
     const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 4000);
-    camera.position.set(0, 29.5, 73.5);
+    camera.position.set(...homeSpot());
     const controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.07;
@@ -984,7 +998,7 @@
     function homeView() {
       follow = null;
       controls.target.set(0, 0, 0);
-      camera.position.set(0, 29.5, 73.5);
+      camera.position.set(...homeSpot());
     }
     function setView(view) {
       state.view = view;
