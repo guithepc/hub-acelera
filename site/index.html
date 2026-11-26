@@ -47,8 +47,7 @@
   #tags { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 
   .brand { position: absolute; left: 0; top: 0; padding-block: 24px; pointer-events: none; }
-  .brand .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); margin-right: 8px; }
-  .brand h1 { margin: 12px 0 0; font-family: var(--display); font-weight: 800; font-size: clamp(40px, 5.4vw, 84px); line-height: 0.84; text-transform: uppercase; }
+  .brand h1 { margin: 0; font-family: var(--display); font-weight: 800; font-size: clamp(40px, 5.4vw, 84px); line-height: 0.84; text-transform: uppercase; }
   .brand p { margin: 12px 0 0; font-size: 14px; line-height: 1.5; color: var(--dim); max-width: 36ch; }
 
   .views { position: absolute; right: 0; top: 0; z-index: 7; padding-block: 22px; display: flex; gap: 6px; }
@@ -193,9 +192,9 @@
   .work h3 { font-weight: 700; font-size: clamp(28px, 2.6vw, 40px); line-height: 1; }
   .work .go { font-size: 12px; padding: 11px 18px; }
   @media (max-width: 759px) {
-    .views { top: 90px; }
-    .gallery { inset: 142px 0 0; }
-    body[data-view="gallery"] .space::before { height: 142px; }
+    .views { top: 64px; }
+    .gallery { inset: 116px 0 0; }
+    body[data-view="gallery"] .space::before { height: 116px; }
     /* phone: the project card is a short strip at the bottom, so the solar system keeps most of the screen */
     .dest { padding-block: 12px; padding-bottom: max(12px, env(safe-area-inset-bottom, 0px)); }
     .card { flex-direction: row; align-items: stretch; }
@@ -216,7 +215,6 @@
   <div id="tags"></div>
 
   <div class="brand gutter">
-    <span class="label"><span class="dot"></span>Acelera Dev · <span id="viewName">sistema solar</span></span>
     <h1>Acelera Hub</h1>
     <p id="hint">Os oito planetas, cada um na sua órbita. Os projetos da comunidade são as estrelas que giram em volta de alguns deles.</p>
   </div>
@@ -1004,7 +1002,6 @@
       state.view = view;
       document.body.dataset.view = view;
       $("gallery").hidden = view !== "gallery";
-      $("viewName").textContent = view === "gallery" ? "galeria" : "sistema solar";
       controls.enabled = view === "space";
       for (const b of document.querySelectorAll(".views button")) b.setAttribute("aria-pressed", String(b.dataset.view === view));
       if (view === "gallery") {
