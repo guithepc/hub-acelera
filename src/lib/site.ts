@@ -1,0 +1,11 @@
+export const site = {
+  name: "Hub Acelera",
+  description: "Vitrine dos projetos da comunidade Acelera Dev.",
+  url: process.env.SITE_URL ?? "http://localhost:3100",
+  communityUrl: "https://aceleradev.com.br",
+  addProjectUrl: "https://github.com/guithepc/hub-acelera#como-adicionar-um-projeto",
+} as const;
+
+export function pageTitle(section?: string): string {
+  return section ? `${section} · ${site.name}` : site.name;
+}

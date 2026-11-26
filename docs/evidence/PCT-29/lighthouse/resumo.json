@@ -1,0 +1,307 @@
+{
+  "base": "http://localhost:3100",
+  "runs": 5,
+  "summary": {
+    "home · desktop": {
+      "performance": {
+        "mediana": 100,
+        "min": 100,
+        "max": 100
+      },
+      "acessibilidade": {
+        "mediana": 100,
+        "min": 100,
+        "max": 100
+      },
+      "seo": {
+        "mediana": 100,
+        "min": 100,
+        "max": 100
+      },
+      "boas práticas": {
+        "mediana": 100,
+        "min": 100,
+        "max": 100
+      },
+      "LCP ms": {
+        "mediana": 203,
+        "min": 202,
+        "max": 539
+      },
+      "TBT ms": {
+        "mediana": 0,
+        "min": 0,
+        "max": 0
+      },
+      "CLS": {
+        "mediana": 0,
+        "min": 0,
+        "max": 0
+      },
+      "peso KB": {
+        "mediana": 314,
+        "min": 314,
+        "max": 314
+      }
+    },
+    "home · celular": {
+      "performance": {
+        "mediana": 100,
+        "min": 100,
+        "max": 100
+      },
+      "acessibilidade": {
+        "mediana": 100,
+        "min": 100,
+        "max": 100
+      },
+      "seo": {
+        "mediana": 100,
+        "min": 100,
+        "max": 100
+      },
+      "boas práticas": {
+        "mediana": 100,
+        "min": 100,
+        "max": 100
+      },
+      "LCP ms": {
+        "mediana": 753,
+        "min": 752,
+        "max": 753
+      },
+      "TBT ms": {
+        "mediana": 2,
+        "min": 0,
+        "max": 4
+      },
+      "CLS": {
+        "mediana": 0,
+        "min": 0,
+        "max": 0
+      },
+      "peso KB": {
+        "mediana": 314,
+        "min": 314,
+        "max": 314
+      }
+    },
+    "lista · desktop": {
+      "performance": {
+        "mediana": 100,
+        "min": 100,
+        "max": 100
+      },
+      "acessibilidade": {
+        "mediana": 100,
+        "min": 100,
+        "max": 100
+      },
+      "seo": {
+        "mediana": 100,
+        "min": 100,
+        "max": 100
+      },
+      "boas práticas": {
+        "mediana": 100,
+        "min": 100,
+        "max": 100
+      },
+      "LCP ms": {
+        "mediana": 203,
+        "min": 202,
+        "max": 203
+      },
+      "TBT ms": {
+        "mediana": 0,
+        "min": 0,
+        "max": 0
+      },
+      "CLS": {
+        "mediana": 0,
+        "min": 0,
+        "max": 0
+      },
+      "peso KB": {
+        "mediana": 312,
+        "min": 312,
+        "max": 312
+      }
+    },
+    "lista · celular": {
+      "performance": {
+        "mediana": 100,
+        "min": 100,
+        "max": 100
+      },
+      "acessibilidade": {
+        "mediana": 100,
+        "min": 100,
+        "max": 100
+      },
+      "seo": {
+        "mediana": 100,
+        "min": 100,
+        "max": 100
+      },
+      "boas práticas": {
+        "mediana": 100,
+        "min": 100,
+        "max": 100
+      },
+      "LCP ms": {
+        "mediana": 753,
+        "min": 752,
+        "max": 753
+      },
+      "TBT ms": {
+        "mediana": 2,
+        "min": 0,
+        "max": 3
+      },
+      "CLS": {
+        "mediana": 0,
+        "min": 0,
+        "max": 0
+      },
+      "peso KB": {
+        "mediana": 312,
+        "min": 312,
+        "max": 312
+      }
+    },
+    "projeto · desktop": {
+      "performance": {
+        "mediana": 100,
+        "min": 100,
+        "max": 100
+      },
+      "acessibilidade": {
+        "mediana": 100,
+        "min": 100,
+        "max": 100
+      },
+      "seo": {
+        "mediana": 100,
+        "min": 100,
+        "max": 100
+      },
+      "boas práticas": {
+        "mediana": 100,
+        "min": 100,
+        "max": 100
+      },
+      "LCP ms": {
+        "mediana": 576,
+        "min": 557,
+        "max": 578
+      },
+      "TBT ms": {
+        "mediana": 0,
+        "min": 0,
+        "max": 0
+      },
+      "CLS": {
+        "mediana": 0,
+        "min": 0,
+        "max": 0
+      },
+      "peso KB": {
+        "mediana": 507,
+        "min": 507,
+        "max": 507
+      }
+    },
+    "projeto · celular": {
+      "performance": {
+        "mediana": 96,
+        "min": 92,
+        "max": 96
+      },
+      "acessibilidade": {
+        "mediana": 100,
+        "min": 100,
+        "max": 100
+      },
+      "seo": {
+        "mediana": 100,
+        "min": 100,
+        "max": 100
+      },
+      "boas práticas": {
+        "mediana": 100,
+        "min": 100,
+        "max": 100
+      },
+      "LCP ms": {
+        "mediana": 2762,
+        "min": 2755,
+        "max": 3383
+      },
+      "TBT ms": {
+        "mediana": 3,
+        "min": 0,
+        "max": 5
+      },
+      "CLS": {
+        "mediana": 0,
+        "min": 0,
+        "max": 0
+      },
+      "peso KB": {
+        "mediana": 507,
+        "min": 507,
+        "max": 507
+      }
+    }
+  },
+  "failed": {
+    "home · desktop": [
+      "cache-insight",
+      "legacy-javascript-insight",
+      "network-dependency-tree-insight",
+      "render-blocking-insight",
+      "unused-javascript"
+    ],
+    "home · celular": [
+      "cache-insight",
+      "legacy-javascript-insight",
+      "network-dependency-tree-insight",
+      "render-blocking-insight",
+      "unused-javascript"
+    ],
+    "lista · desktop": [
+      "cache-insight",
+      "legacy-javascript-insight",
+      "network-dependency-tree-insight",
+      "render-blocking-insight",
+      "unused-javascript"
+    ],
+    "lista · celular": [
+      "cache-insight",
+      "legacy-javascript-insight",
+      "network-dependency-tree-insight",
+      "render-blocking-insight",
+      "unused-javascript"
+    ],
+    "projeto · desktop": [
+      "cache-insight",
+      "image-delivery-insight",
+      "lcp-discovery-insight",
+      "legacy-javascript-insight",
+      "network-dependency-tree-insight",
+      "render-blocking-insight",
+      "unused-javascript"
+    ],
+    "projeto · celular": [
+      "largest-contentful-paint",
+      "cache-insight",
+      "image-delivery-insight",
+      "lcp-discovery-insight",
+      "legacy-javascript-insight",
+      "network-dependency-tree-insight",
+      "render-blocking-insight",
+      "unused-javascript"
+    ]
+  }
+}

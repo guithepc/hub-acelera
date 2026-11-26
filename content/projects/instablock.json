@@ -1,0 +1,26 @@
+{
+  "name": "Instablock",
+  "tagline": "Faça o impulso esperar: um bloqueador de apps que fica no caminho.",
+  "description": "O Instablock bloqueia os apps e sites que roubam o seu tempo. Quando bate a vontade de abrir, ele fica no caminho, e mudar de ideia pode pedir 30 minutos de espera. Roda no Android e no iPhone, com tudo guardado no próprio aparelho.",
+  "highlights": [
+    "Bloqueio de apps e sites que continua valendo com o Instablock fechado",
+    "Modo restrito: tirar um app da lista pede 30 minutos de espera",
+    "Horários livres por app, nos dias que você escolher",
+    "Tudo no aparelho, com conta opcional e sem anúncio",
+    "Código aberto"
+  ],
+  "stack": ["Android", "iOS"],
+  "links": { "site": "https://acelera.marujo.dev" },
+  "cover": "/projects/instablock/cover.jpg",
+  "screenshots": ["/projects/instablock/como-funciona.jpg"],
+  "authors": [
+    {
+      "name": "Lucas Marujo",
+      "contacts": [
+        { "kind": "github", "url": "https://github.com/lucasmarujo" },
+        { "kind": "site", "url": "https://marujo.dev" }
+      ]
+    }
+  ],
+  "order": 3
+}

@@ -1,0 +1,25 @@
+/                                  200 text/html redirect=
+/projetos/                         200 text/html redirect=
+/projetos/acelera-commits/         200 text/html redirect=
+/projetos/acelera-commits          200 text/html redirect=
+/projetos/nao-existe/              404 text/html redirect=
+/projects/instablock/cover.jpg     200 image/jpeg redirect=
+
+cache de um arquivo estático:
+Content-Type: application/javascript
+Cache-Control: public, max-age=31536000, immutable
+X-Content-Type-Options: nosniff
+cache da home:
+Cache-Control: no-cache
+X-Content-Type-Options: nosniff
+Referrer-Policy: strict-origin-when-cross-origin
+gzip:
+Content-Encoding: gzip
+og:image:
+<meta property="og:url" content="https://hub.example.com/projetos/acelera-commits/"/>
+<meta property="og:image" content="https://hub.example.com/projects/acelera-commits/cover.jpg"/>
+404:
+Página não encontrada
+tamanho da imagem:
+22 MB
+saúde: healthy
